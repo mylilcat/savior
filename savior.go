@@ -2,7 +2,7 @@ package savior
 
 import (
 	"github.com/mylilcat/savior/launcher"
-	"github.com/mylilcat/savior/net/kcp/connection"
+	"github.com/mylilcat/savior/net"
 	"github.com/mylilcat/savior/service"
 	"os"
 	"os/signal"
@@ -24,18 +24,10 @@ func BindPort(port string) {
 	launcher.SetPort(port)
 }
 
-func KcpOnConnectHandler(fun func(connection *connection.KCPConnection)) {
-	launcher.SetKcpConnectHandler(fun)
+func SetOnConnectHandler(f func(c net.Connection)) {
+	net.OnConnect = f
 }
 
-func KcpOnDisconnectHandler(fun func(connection *connection.KCPConnection)) {
-	launcher.SetKcpDisconnectHandler(fun)
-}
+func SetOnDisconnectHandler() {
 
-func KcpOnReadHandler(fun func(connection *connection.KCPConnection, data []byte)) {
-	launcher.SetKcpReadHandler(fun)
-}
-
-func KcpOnIdleHandler(fun func(connection *connection.KCPConnection)) {
-	launcher.SetKcpIdleHandler(fun)
 }

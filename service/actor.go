@@ -80,7 +80,7 @@ func executeTask(actor *Actor, task *TaskInfo) {
 		}
 		resultValues := functionInfo.funcValue.Call(argValues)
 		if task.resultChan != nil {
-			var results []interface{}
+			var results []any
 			for _, value := range resultValues {
 				results = append(results, value.Interface())
 			}
@@ -95,7 +95,7 @@ type FunctionInfo struct {
 	funcType  reflect.Type
 }
 
-func (a *Actor) RegisterFunction(name string, function interface{}) {
+func (a *Actor) RegisterFunction(name string, function any) {
 
 	if name == "" {
 		panic("Function name empty")

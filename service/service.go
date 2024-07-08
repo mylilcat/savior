@@ -18,7 +18,7 @@ func NewService(name string) *Service {
 	return s
 }
 
-func (s *Service) RegisterActorFunction(name string, function interface{}) {
+func (s *Service) RegisterActorFunction(name string, function any) {
 	s.manager.actor.RegisterFunction(name, function)
 }
 
@@ -30,23 +30,23 @@ func (s *Service) setDestroyFunc(fun func()) {
 	s.manager.serviceDestroyFunc = fun
 }
 
-func makeTask(funcName string, needResult bool, args ...interface{}) *TaskInfo {
+func makeTask(funcName string, needResult bool, args ...any) *TaskInfo {
 	task := new(TaskInfo)
 	task.functionName = funcName
 	task.args = args
 	if needResult {
-		task.resultChan = make(chan []interface{})
+		task.resultChan = make(chan []any)
 	}
 	return task
 }
 
 type TaskInfo struct {
 	functionName string
-	args         []interface{}
-	resultChan   chan []interface{}
+	args         []any
+	resultChan   chan []any
 }
 
-func Call(serviceName string, funcName string, args ...interface{}) {
+func Call(serviceName string, funcName string, args ...any) {
 	targetActor := GetServiceActor(serviceName)
 	if targetActor == nil {
 		return
@@ -55,7 +55,7 @@ func Call(serviceName string, funcName string, args ...interface{}) {
 	targetActor.Send(task)
 }
 
-func Call1[R any](serviceName string, funcName string, args ...interface{}) (r R) {
+func Call1[R any](serviceName string, funcName string, args ...any) (r R) {
 	targetActor := GetServiceActor(serviceName)
 	if targetActor == nil {
 		return
@@ -67,7 +67,7 @@ func Call1[R any](serviceName string, funcName string, args ...interface{}) (r R
 	return
 }
 
-func Call2[R1 any, R2 any](serviceName string, funcName string, args ...interface{}) (r1 R1, r2 R2) {
+func Call2[R1 any, R2 any](serviceName string, funcName string, args ...any) (r1 R1, r2 R2) {
 	targetActor := GetServiceActor(serviceName)
 	if targetActor == nil {
 		return
@@ -79,7 +79,7 @@ func Call2[R1 any, R2 any](serviceName string, funcName string, args ...interfac
 	return
 }
 
-func Call3[R1 any, R2 any, R3 any](serviceName string, funcName string, args ...interface{}) (r1 R1, r2 R2, r3 R3) {
+func Call3[R1 any, R2 any, R3 any](serviceName string, funcName string, args ...any) (r1 R1, r2 R2, r3 R3) {
 	targetActor := GetServiceActor(serviceName)
 	if targetActor == nil {
 		return
@@ -91,7 +91,7 @@ func Call3[R1 any, R2 any, R3 any](serviceName string, funcName string, args ...
 	return
 }
 
-func Call4[R1 any, R2 any, R3 any, R4 any](serviceName string, funcName string, args ...interface{}) (r1 R1, r2 R2, r3 R3, r4 R4) {
+func Call4[R1 any, R2 any, R3 any, R4 any](serviceName string, funcName string, args ...any) (r1 R1, r2 R2, r3 R3, r4 R4) {
 	targetActor := GetServiceActor(serviceName)
 	if targetActor == nil {
 		return
@@ -103,7 +103,7 @@ func Call4[R1 any, R2 any, R3 any, R4 any](serviceName string, funcName string, 
 	return
 }
 
-func Call5[R1 any, R2 any, R3 any, R4 any, R5 any](serviceName string, funcName string, args ...interface{}) (r1 R1, r2 R2, r3 R3, r4 R4, r5 R5) {
+func Call5[R1 any, R2 any, R3 any, R4 any, R5 any](serviceName string, funcName string, args ...any) (r1 R1, r2 R2, r3 R3, r4 R4, r5 R5) {
 	targetActor := GetServiceActor(serviceName)
 	if targetActor == nil {
 		return

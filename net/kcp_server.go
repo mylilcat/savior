@@ -1,10 +1,11 @@
-package server
+package net
 
 import (
-	"github.com/mylilcat/savior/net/kcp/connection"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
+	"net"
 	"sync"
+	"time"
 )
 
 type KCPServer struct {
@@ -14,11 +15,11 @@ type KCPServer struct {
 	connLock            sync.Mutex
 	listener            *kcp.Listener
 	connections         sync.Map
-	connCloseNotifyChan chan *connection.KCPConnection
+	connCloseNotifyChan chan *KCPConnection
 }
 
 func (server *KCPServer) Start() {
-	server.connCloseNotifyChan = make(chan *connection.KCPConnection, 100)
+	server.connCloseNotifyChan = make(chan *KCPConnection, 100)
 	listener, err := kcp.ListenWithOptions("0.0.0.0:"+server.Port, nil, 0, 0)
 	if err != nil {
 		log.Println("server start err:", err)
@@ -32,18 +33,29 @@ func (server *KCPServer) Start() {
 func (server *KCPServer) run() {
 	server.wgServer.Add(1)
 	defer server.wgServer.Done()
+	var delay time.Duration
 	for {
 		conn, err := server.listener.AcceptKCP()
 		if err != nil {
-			log.Println("server listening err:", err)
-			conn.Close()
+			if _, ok := err.(net.Error); ok && err.(net.Error).Timeout() {
+				if delay == 0 {
+					delay = 2 * time.Millisecond
+				} else {
+					delay *= 2
+				}
+				if max := 1 * time.Second; delay > max {
+					delay = max
+				}
+				time.Sleep(delay)
+				continue
+			}
 			return
 		}
-		kcpConn := connection.NewKCPConnection(conn, server.connCloseNotifyChan)
+		kcpConn := NewKCPConnection(conn, server.connCloseNotifyChan)
 		server.connections.Store(kcpConn.GetConv(), kcpConn)
 		server.wgConn.Add(1)
-		if connection.OnConnect != nil {
-			connection.OnConnect(kcpConn)
+		if OnConnect != nil {
+			OnConnect(kcpConn)
 		}
 	}
 }
@@ -53,8 +65,8 @@ func (server *KCPServer) closedConnWatcher() {
 		kcpConn := <-server.connCloseNotifyChan
 		if !kcpConn.IsConnected() {
 			if _, ok := server.connections.Load(kcpConn.GetConv()); ok {
-				if connection.OnDisconnect != nil {
-					connection.OnDisconnect(kcpConn)
+				if OnDisconnect != nil {
+					OnDisconnect(kcpConn)
 				}
 				server.wgConn.Done()
 				server.connections.Delete(kcpConn.GetConv())
