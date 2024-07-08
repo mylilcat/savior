@@ -24,10 +24,22 @@ func BindPort(port string) {
 	launcher.SetPort(port)
 }
 
+func SetProto(p int) {
+	launcher.SetProto(p)
+}
+
 func SetOnConnectHandler(f func(c net.Connection)) {
 	net.OnConnect = f
 }
 
-func SetOnDisconnectHandler() {
+func SetOnDisconnectHandler(f func(c net.Connection)) {
+	net.OnDisconnect = f
+}
 
+func SetOnReadHandler(f func(c net.Connection, data []byte)) {
+	net.OnRead = f
+}
+
+func SetOnIdle(f func(c net.Connection)) {
+	net.OnIdle = f
 }

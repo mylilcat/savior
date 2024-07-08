@@ -5,24 +5,32 @@ import (
 )
 
 const (
-	KCP int = iota
-	TCP
+	TCP int = iota
+	KCP
 )
 
 var (
-	port      string
-	netProto  int
-	kcpServer *net.KCPServer
+	port  string
+	proto int
 )
+
+func SetProto(p int) {
+	proto = p
+}
 
 func SetPort(serverPort string) {
 	port = serverPort
 }
 
 func ServerStart() {
-	if netProto == KCP {
-		kcpServer = new(net.KCPServer)
-		kcpServer.Port = port
-		kcpServer.Start()
+	switch proto {
+	case TCP:
+		s := new(net.TCPServer)
+		s.Port = port
+		s.Start()
+	case KCP:
+		s := new(net.KCPServer)
+		s.Port = port
+		s.Start()
 	}
 }
