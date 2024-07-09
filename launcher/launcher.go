@@ -42,6 +42,7 @@ func SetIdleMonitor(readIdle int64, writeIdle int64, unit time.Duration) {
 		writeIdle: writeIdle,
 		unit:      unit,
 	}
+	net.IdleMonitoring = idleMonitoring
 }
 
 func ServerStart() {
@@ -54,10 +55,14 @@ func ServerStart() {
 		s := new(net.KCPServer)
 		s.Port = port
 		s.Start()
+	default:
+		s := new(net.TCPServer)
+		s.Port = port
+		s.Start()
 	}
 }
 
-func StartIdleMonitoring(connections *sync.Map) {
+func idleMonitoring(connections *sync.Map) {
 	if iMonitor == nil {
 		return
 	}

@@ -6,6 +6,7 @@ import (
 	"github.com/mylilcat/savior/service"
 	"os"
 	"os/signal"
+	"time"
 )
 
 func Start(services ...*service.Service) {
@@ -42,4 +43,8 @@ func SetOnReadHandler(f func(c net.Connection, data []byte)) {
 
 func SetOnIdleHandler(f func(c net.Connection)) {
 	net.OnIdle = f
+}
+
+func SetIdleMonitor(readIdle int64, writeIdle int64, unit time.Duration) {
+	launcher.SetIdleMonitor(readIdle, writeIdle, unit)
 }
