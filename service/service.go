@@ -22,11 +22,11 @@ func (s *Service) RegisterActorFunction(name string, function any) {
 	s.manager.actor.RegisterFunction(name, function)
 }
 
-func (s *Service) setInitFunc(fun func()) {
+func (s *Service) SetInitFunc(fun func()) {
 	s.manager.serviceInitFunc = fun
 }
 
-func (s *Service) setDestroyFunc(fun func()) {
+func (s *Service) SetDestroyFunc(fun func()) {
 	s.manager.serviceDestroyFunc = fun
 }
 
