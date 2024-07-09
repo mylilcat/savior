@@ -55,10 +55,8 @@ func NewTimer(period int64, unit time.Duration, slotNum int) *Timer {
 
 func (t *Timer) AddTask(f func(), delayTime int64, typ ...any) {
 
-	delayTime = delayTime * int64(t.unit)
-	period := t.period * int64(t.unit)
-	round := int(delayTime / (int64(len(t.slots)) * period))
-	pos := int((int64(t.curSlot) + delayTime/period) % int64(len(t.slots)))
+	round := int(delayTime / (int64(len(t.slots)) * t.period))
+	pos := int((int64(t.curSlot) + delayTime/t.period) % int64(len(t.slots)))
 	tsk := &task{
 		pos:   pos,
 		round: round,

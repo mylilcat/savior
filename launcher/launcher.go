@@ -69,7 +69,7 @@ func idleMonitoring(connections *sync.Map) {
 	if net.OnIdle == nil {
 		return
 	}
-	if util.IsTimeUnitValid(iMonitor.unit) {
+	if !util.IsTimeUnitValid(iMonitor.unit) {
 		return
 	}
 	var period int64
