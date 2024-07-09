@@ -1,6 +1,7 @@
 package net
 
 import (
+	"github.com/mylilcat/savior/launcher"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
 	"net"
@@ -58,6 +59,7 @@ func (server *KCPServer) run() {
 			OnConnect(kcpConn)
 		}
 	}
+	launcher.StartIdleMonitoring(&server.connections)
 }
 
 func (server *KCPServer) closedConnWatcher() {

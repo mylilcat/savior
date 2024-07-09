@@ -2,6 +2,7 @@ package net
 
 import (
 	"github.com/xtaci/kcp-go/v5"
+	"time"
 )
 
 type KCPConnection struct {
@@ -49,4 +50,12 @@ func (k *KCPConnection) Read(b []byte) (n int, err error) {
 
 func (k *KCPConnection) Write(b []byte) (n int, err error) {
 	return k.conn.Write(b)
+}
+
+func (k *KCPConnection) GetLastReadTime() time.Time {
+	return k.ioWorker.receiver.lastReadTime
+}
+
+func (k *KCPConnection) GetLastWriteTime() time.Time {
+	return k.ioWorker.sender.lastWriteTime
 }

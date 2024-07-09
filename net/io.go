@@ -2,6 +2,7 @@ package net
 
 import (
 	"log"
+	"time"
 )
 
 type worker struct {
@@ -19,6 +20,7 @@ func newIOWorker(c Connection) *worker {
 }
 
 type receiver struct {
+	lastReadTime time.Time
 }
 
 func newReceiver() *receiver {
@@ -39,12 +41,14 @@ func (r *receiver) receiverRunning(c Connection) {
 		if OnRead != nil {
 			OnRead(c, buf[:n])
 		}
+		r.lastReadTime = time.Now()
 	}
 	c.Close()
 }
 
 type sender struct {
-	sendChan chan []byte
+	sendChan      chan []byte
+	lastWriteTime time.Time
 }
 
 func newSender() *sender {
@@ -70,6 +74,7 @@ func (s *sender) senderRunning(c Connection) {
 			log.Println("send err:", err)
 			break
 		}
+		s.lastWriteTime = time.Now()
 	}
 	c.Close()
 }

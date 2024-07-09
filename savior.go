@@ -40,6 +40,6 @@ func SetOnReadHandler(f func(c net.Connection, data []byte)) {
 	net.OnRead = f
 }
 
-func SetOnIdle(f func(c net.Connection)) {
+func SetOnIdleHandler(f func(c net.Connection)) {
 	net.OnIdle = f
 }

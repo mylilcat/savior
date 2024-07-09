@@ -1,6 +1,7 @@
 package net
 
 import (
+	"github.com/mylilcat/savior/launcher"
 	"log"
 	"net"
 	"sync"
@@ -55,6 +56,7 @@ func (server *TCPServer) run() {
 			OnConnect(tcpConn)
 		}
 	}
+	launcher.StartIdleMonitoring(&server.connections)
 }
 
 func (server *TCPServer) closedConnWatcher() {

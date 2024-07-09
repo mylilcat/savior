@@ -2,6 +2,7 @@ package net
 
 import (
 	"net"
+	"time"
 )
 
 type TCPConnection struct {
@@ -45,4 +46,12 @@ func (t *TCPConnection) Read(b []byte) (n int, err error) {
 
 func (t *TCPConnection) Write(b []byte) (n int, err error) {
 	return t.conn.Write(b)
+}
+
+func (t *TCPConnection) GetLastReadTime() time.Time {
+	return t.ioWorker.receiver.lastReadTime
+}
+
+func (t *TCPConnection) GetLastWriteTime() time.Time {
+	return t.ioWorker.sender.lastWriteTime
 }
