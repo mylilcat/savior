@@ -9,6 +9,7 @@ type Connection interface {
 	Close()
 	Read(b []byte) (n int, err error)
 	Write(b []byte) (n int, err error)
+	Send(b []byte)
 	GetLastReadTime() time.Time
 	GetLastWriteTime() time.Time
 }

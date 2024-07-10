@@ -48,6 +48,10 @@ func (t *TCPConnection) Write(b []byte) (n int, err error) {
 	return t.conn.Write(b)
 }
 
+func (t *TCPConnection) Send(b []byte) {
+	t.ioWorker.sender.send(b)
+}
+
 func (t *TCPConnection) GetLastReadTime() time.Time {
 	return t.ioWorker.receiver.lastReadTime
 }

@@ -52,6 +52,10 @@ func (k *KCPConnection) Write(b []byte) (n int, err error) {
 	return k.conn.Write(b)
 }
 
+func (k *KCPConnection) Send(b []byte) {
+	k.ioWorker.sender.send(b)
+}
+
 func (k *KCPConnection) GetLastReadTime() time.Time {
 	return k.ioWorker.receiver.lastReadTime
 }
