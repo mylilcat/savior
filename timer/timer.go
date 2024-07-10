@@ -101,9 +101,7 @@ func (t *Timer) Stop() {
 }
 
 func (t *Timer) tick() {
-	defer func() {
-		t.curSlot = (t.curSlot + 1) % len(t.slots)
-	}()
+	t.curSlot = (t.curSlot + 1) % len(t.slots)
 	list := t.slots[t.curSlot]
 	for e := list.Front(); e != nil; {
 		tsk := e.Value.(*task)
