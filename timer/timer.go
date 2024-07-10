@@ -62,15 +62,16 @@ func (t *Timer) AddTask(f func(), delayTime int64, typ ...any) {
 		round: round,
 		f:     f,
 	}
-	switch typ[0] {
-	case DelayTask:
-		tsk.typ = DelayTask
-	case IntervalTask:
-		tsk.typ = IntervalTask
-		tsk.delayTime = delayTime
-	default:
+
+	if len(typ) == 0 || typ[0] == DelayTask {
 		tsk.typ = DelayTask
 	}
+
+	if len(typ) > 0 && typ[0] == IntervalTask {
+		tsk.typ = IntervalTask
+		tsk.delayTime = delayTime
+	}
+
 	t.taskChan <- tsk
 }
 
