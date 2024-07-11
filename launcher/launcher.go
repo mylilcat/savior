@@ -9,13 +9,13 @@ import (
 )
 
 const (
-	TCP int = iota
-	KCP
+	TCP = "tcp"
+	KCP = "kcp"
 )
 
 var (
 	port     string
-	proto    int
+	proto    string
 	iMonitor *idleMonitor
 )
 
@@ -25,7 +25,7 @@ type idleMonitor struct {
 	unit      time.Duration
 }
 
-func SetProto(p int) {
+func SetProto(p string) {
 	proto = p
 }
 

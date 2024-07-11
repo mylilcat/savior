@@ -25,7 +25,7 @@ func BindPort(port string) {
 	launcher.SetPort(port)
 }
 
-func SetProto(p int) {
+func SetProto(p string) {
 	launcher.SetProto(p)
 }
 
