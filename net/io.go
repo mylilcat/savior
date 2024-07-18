@@ -24,7 +24,9 @@ type receiver struct {
 }
 
 func newReceiver() *receiver {
-	return new(receiver)
+	r := new(receiver)
+	r.lastReadTime = time.Now()
+	return r
 }
 
 func (r *receiver) receiverRunning(c Connection) {
@@ -54,6 +56,7 @@ type sender struct {
 func newSender() *sender {
 	s := new(sender)
 	s.sendChan = make(chan []byte, 100)
+	s.lastWriteTime = time.Now()
 	return s
 }
 
