@@ -30,7 +30,7 @@ func (s *Service) SetDestroyFunc(fun func()) {
 	s.manager.serviceDestroyFunc = fun
 }
 
-func makeTask(funcName string, needResult bool, args ...any) *TaskInfo {
+func makeTask(funcName string, needResult bool, args []any) *TaskInfo {
 	task := new(TaskInfo)
 	task.functionName = funcName
 	task.args = args

@@ -68,7 +68,7 @@ func (w *routineWorker) run(actor *Actor) {
 func executeTask(actor *Actor, task *TaskInfo) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Print(r.(error))
+
 		}
 	}()
 	if functionInfo, ok := actor.actorFunctions[task.functionName]; ok {
