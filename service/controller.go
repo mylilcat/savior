@@ -20,13 +20,13 @@ func Register(service *Service) {
 		panic("service name repeated")
 	}
 	services[service.name] = service
-	log.Print("service register,name:", service.name)
+	log.Print("savior service register,name:", service.name)
 }
 
 func ServicesRun() {
 	for _, service := range services {
 		wg.Add(1)
-		log.Println("service name:", service.name)
+		log.Println("savior service name:", service.name)
 		go service.manager.run()
 	}
 	for _, service := range services {
