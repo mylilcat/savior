@@ -84,11 +84,11 @@ func idleMonitoring(connections *sync.Map) {
 	idleTimer.AddTask(func() {
 		connections.Range(func(key, value any) bool {
 			conn := value.(net.Connection)
-			if conn.GetLastReadTime().Add(time.Duration(iMonitor.readIdle) * iMonitor.unit).Before(time.Now()) {
+			if iMonitor.readIdle > 0 && conn.GetLastReadTime().Add(time.Duration(iMonitor.readIdle)*iMonitor.unit).Before(time.Now()) {
 				net.OnIdle(conn)
 				return true
 			}
-			if conn.GetLastWriteTime().Add(time.Duration(iMonitor.writeIdle) * iMonitor.unit).Before(time.Now()) {
+			if iMonitor.writeIdle > 0 && conn.GetLastWriteTime().Add(time.Duration(iMonitor.writeIdle)*iMonitor.unit).Before(time.Now()) {
 				net.OnIdle(conn)
 				return true
 			}
