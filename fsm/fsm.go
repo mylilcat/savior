@@ -100,11 +100,17 @@ func (f *FiniteStateMachine) update() {
 	for _, transition := range f.currentState.transitions {
 		if transition.isCanBeConverted() {
 			ns := transition.nextState
-			f.currentState.onExit()
+			if f.currentState.onExit != nil {
+				f.currentState.onExit()
+			}
 			f.currentState = ns
-			f.currentState.onEnter()
+			if f.currentState.onEnter != nil {
+				f.currentState.onEnter()
+			}
 			break
 		}
 	}
-	f.currentState.onExecute()
+	if f.currentState.onExecute != nil {
+		f.currentState.onExecute()
+	}
 }
