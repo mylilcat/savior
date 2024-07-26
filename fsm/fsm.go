@@ -10,19 +10,19 @@ type State struct {
 	transitions []*Transition
 }
 
-func (s *State) setOnEnter(f func()) {
+func (s *State) SetOnEnter(f func()) {
 	s.onEnter = f
 }
 
-func (s *State) setOnExist(f func()) {
+func (s *State) SetOnExist(f func()) {
 	s.onExit = f
 }
 
-func (s *State) setOnExecute(f func()) {
+func (s *State) SetOnExecute(f func()) {
 	s.onExecute = f
 }
 
-func (s *State) addTransitions(t ...*Transition) {
+func (s *State) AddTransitions(t ...*Transition) {
 	for _, transition := range t {
 		s.transitions = append(s.transitions, transition)
 	}
@@ -41,7 +41,7 @@ type Transition struct {
 	onTransition     func()
 }
 
-func (t *Transition) setConvertCondition(f func() bool) {
+func (t *Transition) SetConvertCondition(f func() bool) {
 	t.isCanBeConverted = f
 }
 

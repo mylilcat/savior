@@ -6,6 +6,7 @@ import (
 	"github.com/mylilcat/savior/service"
 	"os"
 	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -16,7 +17,7 @@ func Start(services ...*service.Service) {
 	service.ServicesRun()
 	launcher.ServerStart()
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, os.Interrupt, os.Kill)
+	signal.Notify(sigChan, os.Interrupt, os.Kill, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 	service.ServicesStop()
 }
