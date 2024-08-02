@@ -3,11 +3,12 @@ package fsm
 import "time"
 
 type State struct {
-	Name        string
-	onEnter     func()
-	onExecute   func()
-	onExit      func()
-	transitions []*Transition
+	Name           string
+	EnterTimestamp int64
+	onEnter        func()
+	onExecute      func()
+	onExit         func()
+	transitions    []*Transition
 }
 
 func (s *State) SetOnEnter(f func()) {
@@ -55,23 +56,29 @@ type FiniteStateMachine struct {
 	states       []*State
 	currentState *State
 	stopChan     chan any
+	period       int64
+	unit         time.Duration
 }
 
 func (f *FiniteStateMachine) CurrentState() *State {
 	return f.currentState
 }
 
-func (f *FiniteStateMachine) Start(options ...any) {
+func (f *FiniteStateMachine) SetPeriodAndUnit(period int64, unit time.Duration) {
+	f.period = period
+	f.unit = unit
+}
+
+func (f *FiniteStateMachine) Start() {
 	f.stopChan = make(chan any)
-	period := int64(10)
-	unit := time.Millisecond
-	if len(options) > 0 {
-		period = options[0].(int64)
+	if f.period == 0 {
+		f.period = int64(15)
 	}
-	if len(options) > 1 {
-		unit = options[1].(time.Duration)
+
+	if f.unit == 0 {
+		f.unit = time.Millisecond
 	}
-	ticker := time.NewTicker(time.Duration(period) * unit)
+	ticker := time.NewTicker(time.Duration(f.period) * f.unit)
 
 	go func() {
 		for {
@@ -106,6 +113,7 @@ func (f *FiniteStateMachine) update() {
 			f.currentState = ns
 			if f.currentState.onEnter != nil {
 				f.currentState.onEnter()
+				f.currentState.EnterTimestamp = time.Now().UnixMilli()
 			}
 			break
 		}
