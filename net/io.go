@@ -79,5 +79,11 @@ func (s *sender) senderRunning(c Connection) {
 		}
 		s.lastWriteTime = time.Now()
 	}
+	if len(s.sendChan) > 0 {
+		for range s.sendChan {
+			continue
+		}
+	}
+	close(s.sendChan)
 	c.Close()
 }

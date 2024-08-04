@@ -50,14 +50,21 @@ func newWorkers() []*routineWorker {
 
 func (w *routineWorker) run(actor *Actor) {
 	go func() {
-		if r := recover(); r != nil {
-			log.Print(r.(error))
-		}
+		defer func() {
+			if r := recover(); r != nil {
+				log.Print(r)
+			}
+		}()
 		for {
 			select {
 			case task := <-w.taskChan:
 				executeTask(actor, task)
 			case <-w.stopChan:
+				if len(w.taskChan) > 0 {
+					for task := range w.taskChan {
+						executeTask(actor, task)
+					}
+				}
 				actor.wgWorker.Done()
 				return
 			}
@@ -68,7 +75,7 @@ func (w *routineWorker) run(actor *Actor) {
 func executeTask(actor *Actor, task *TaskInfo) {
 	defer func() {
 		if r := recover(); r != nil {
-
+			log.Println("executeTask panic:", r)
 		}
 	}()
 	if functionInfo, ok := actor.actorFunctions[task.functionName]; ok {

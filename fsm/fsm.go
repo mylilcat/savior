@@ -1,6 +1,9 @@
 package fsm
 
-import "time"
+import (
+	"log"
+	"time"
+)
 
 type State struct {
 	Name           string
@@ -80,13 +83,24 @@ func (f *FiniteStateMachine) Start() {
 	}
 	ticker := time.NewTicker(time.Duration(f.period) * f.unit)
 
+	if f.currentState.onEnter != nil {
+		f.currentState.EnterTimestamp = time.Now().UnixMilli()
+		f.currentState.onEnter()
+	}
+
 	go func() {
+		defer func() {
+			if r := recover(); r != nil {
+				log.Print(r)
+			}
+		}()
 		for {
 			select {
 			case <-ticker.C:
 				f.update()
 			case <-f.stopChan:
 				ticker.Stop()
+				return
 			}
 		}
 	}()
@@ -104,6 +118,13 @@ func NewFiniteStateMachine(initialState *State, s ...*State) *FiniteStateMachine
 }
 
 func (f *FiniteStateMachine) update() {
+
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("Recovered from panic in update: %v", r)
+		}
+	}()
+
 	for _, transition := range f.currentState.transitions {
 		if transition.isCanBeConverted() {
 			ns := transition.nextState

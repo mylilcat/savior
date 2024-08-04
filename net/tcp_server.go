@@ -66,12 +66,9 @@ func (server *TCPServer) closedConnWatcher() {
 	for {
 		tcpConn := <-server.connCloseNotifyChan
 		if !tcpConn.IsConnected() {
-			if _, ok := server.connections.Load(tcpConn.conn.RemoteAddr()); ok {
-				if OnDisconnect != nil {
-					OnDisconnect(tcpConn)
-				}
+			if _, loaded := server.connections.LoadAndDelete(tcpConn.conn.RemoteAddr()); loaded && OnDisconnect != nil {
+				OnDisconnect(tcpConn)
 				server.wgConn.Done()
-				server.connections.Delete(tcpConn.conn.RemoteAddr())
 			}
 		}
 	}

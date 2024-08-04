@@ -67,14 +67,10 @@ func (server *KCPServer) closedConnWatcher() {
 	for {
 		kcpConn := <-server.connCloseNotifyChan
 		if !kcpConn.IsConnected() {
-			if _, ok := server.connections.Load(kcpConn.GetConv()); ok {
-				if OnDisconnect != nil {
-					OnDisconnect(kcpConn)
-				}
+			if _, loaded := server.connections.LoadAndDelete(kcpConn.GetConv()); loaded && OnDisconnect != nil {
+				OnDisconnect(kcpConn)
 				server.wgConn.Done()
-				server.connections.Delete(kcpConn.GetConv())
 			}
-
 		}
 	}
 }
