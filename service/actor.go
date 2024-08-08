@@ -3,6 +3,7 @@ package service
 import (
 	"log"
 	"reflect"
+	"runtime"
 	"sync"
 )
 
@@ -52,7 +53,9 @@ func (w *routineWorker) run(actor *Actor) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Print(r)
+				buf := make([]byte, 1024)
+				n := runtime.Stack(buf, false)
+				log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
 			}
 		}()
 		for {
@@ -75,7 +78,9 @@ func (w *routineWorker) run(actor *Actor) {
 func executeTask(actor *Actor, task *TaskInfo) {
 	defer func() {
 		if r := recover(); r != nil {
-			log.Println("executeTask panic:", r)
+			buf := make([]byte, 1024)
+			n := runtime.Stack(buf, false)
+			log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
 		}
 	}()
 	if functionInfo, ok := actor.actorFunctions[task.functionName]; ok {

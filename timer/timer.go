@@ -3,6 +3,7 @@ package timer
 import (
 	"container/list"
 	"log"
+	"runtime"
 	"time"
 )
 
@@ -81,7 +82,9 @@ func (t *Timer) Start() {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Println("timer run err:", r.(error))
+				buf := make([]byte, 1024)
+				n := runtime.Stack(buf, false)
+				log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
 			}
 		}()
 		for {
@@ -115,7 +118,9 @@ func (t *Timer) tick() {
 		go func() {
 			defer func() {
 				if r := recover(); r != nil {
-					log.Println("timer run err:", r.(error))
+					buf := make([]byte, 1024)
+					n := runtime.Stack(buf, false)
+					log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
 				}
 			}()
 			if tsk.typ == IntervalTask {

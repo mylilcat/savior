@@ -2,6 +2,7 @@ package fsm
 
 import (
 	"log"
+	"runtime"
 	"time"
 )
 
@@ -91,7 +92,9 @@ func (f *FiniteStateMachine) Start() {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
-				log.Print(r)
+				buf := make([]byte, 1024)
+				n := runtime.Stack(buf, false)
+				log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
 			}
 		}()
 		for {
@@ -121,7 +124,9 @@ func (f *FiniteStateMachine) update() {
 
 	defer func() {
 		if r := recover(); r != nil {
-			log.Printf("Recovered from panic in update: %v", r)
+			buf := make([]byte, 1024)
+			n := runtime.Stack(buf, false)
+			log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
 		}
 	}()
 
