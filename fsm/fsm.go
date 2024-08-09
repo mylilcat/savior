@@ -3,6 +3,7 @@ package fsm
 import (
 	"log"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -62,6 +63,7 @@ type FiniteStateMachine struct {
 	stopChan     chan any
 	period       int64
 	unit         time.Duration
+	stopOnce     sync.Once
 }
 
 func (f *FiniteStateMachine) CurrentState() *State {
@@ -110,7 +112,9 @@ func (f *FiniteStateMachine) Start() {
 }
 
 func (f *FiniteStateMachine) Stop() {
-	close(f.stopChan)
+	f.stopOnce.Do(func() {
+		close(f.stopChan)
+	})
 }
 
 func NewFiniteStateMachine(initialState *State, s ...*State) *FiniteStateMachine {
