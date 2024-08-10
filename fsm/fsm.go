@@ -3,7 +3,6 @@ package fsm
 import (
 	"log"
 	"runtime"
-	"sync"
 	"time"
 )
 
@@ -63,7 +62,7 @@ type FiniteStateMachine struct {
 	stopChan     chan any
 	period       int64
 	unit         time.Duration
-	stopOnce     sync.Once
+	ticker       *time.Ticker
 }
 
 func (f *FiniteStateMachine) CurrentState() *State {
@@ -84,7 +83,7 @@ func (f *FiniteStateMachine) Start() {
 	if f.unit == 0 {
 		f.unit = time.Millisecond
 	}
-	ticker := time.NewTicker(time.Duration(f.period) * f.unit)
+	f.ticker = time.NewTicker(time.Duration(f.period) * f.unit)
 
 	if f.currentState.onEnter != nil {
 		f.currentState.EnterTimestamp = time.Now().UnixMilli()
@@ -101,10 +100,9 @@ func (f *FiniteStateMachine) Start() {
 		}()
 		for {
 			select {
-			case <-ticker.C:
+			case <-f.ticker.C:
 				f.update()
 			case <-f.stopChan:
-				ticker.Stop()
 				return
 			}
 		}
@@ -112,9 +110,8 @@ func (f *FiniteStateMachine) Start() {
 }
 
 func (f *FiniteStateMachine) Stop() {
-	f.stopOnce.Do(func() {
-		close(f.stopChan)
-	})
+	f.ticker.Stop()
+	close(f.stopChan)
 }
 
 func NewFiniteStateMachine(initialState *State, s ...*State) *FiniteStateMachine {
