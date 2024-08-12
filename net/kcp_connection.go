@@ -18,6 +18,10 @@ func NewKCPConnection(conn *kcp.UDPSession, closeNotifyChan chan *KCPConnection)
 	kcp.conn = conn
 	kcp.closeNotifyChan = closeNotifyChan
 	kcp.isConnected = true
+	conn.SetNoDelay(1, 15, 2, 1)
+	conn.SetWindowSize(1024, 1024)
+	conn.SetWriteDelay(false)
+	conn.SetACKNoDelay(true)
 	kcp.ioWorker = newIOWorker(kcp)
 	return kcp
 }
@@ -49,11 +53,18 @@ func (k *KCPConnection) Read(b []byte) (n int, err error) {
 }
 
 func (k *KCPConnection) Write(b []byte) (n int, err error) {
+	err = k.conn.SetWriteDeadline(time.Now().Add(5 * time.Millisecond))
+	if err != nil {
+		return 0, err
+	}
 	return k.conn.Write(b)
 }
 
 func (k *KCPConnection) Send(b []byte) {
-	k.ioWorker.sender.send(b)
+	if k.isConnected {
+		k.ioWorker.sender.send(b)
+	}
+
 }
 
 func (k *KCPConnection) GetLastReadTime() time.Time {

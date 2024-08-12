@@ -74,7 +74,7 @@ func (s *sender) senderRunning(c Connection) {
 		}
 		_, err := c.Write(bytes)
 		if err != nil {
-			log.Println("send err:", err)
+			log.Println("savior senderRunning send err:", err)
 			break
 		}
 		s.lastWriteTime = time.Now()
