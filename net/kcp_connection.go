@@ -52,8 +52,18 @@ func (k *KCPConnection) Read(b []byte) (n int, err error) {
 	return k.conn.Read(b)
 }
 
+// unofficial method
 func (k *KCPConnection) Write(b []byte) (n int, err error) {
-	return k.conn.Write(b)
+	nChan := make(chan int)
+	eChan := make(chan error)
+	go func() {
+		num, e := k.conn.Write(b)
+		nChan <- num
+		eChan <- e
+	}()
+	n = <-nChan
+	err = <-eChan
+	return
 }
 
 func (k *KCPConnection) Send(b []byte) {
