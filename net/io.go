@@ -37,7 +37,7 @@ func (r *receiver) receiverRunning(c Connection) {
 		buf := make([]byte, 4096)
 		n, err := c.Read(buf)
 		if err != nil {
-			log.Println("receive err:", err)
+			log.Println("Savior receive err:", err)
 			break
 		}
 		if OnRead != nil {
@@ -74,7 +74,7 @@ func (s *sender) senderRunning(c Connection) {
 		}
 		_, err := c.Write(bytes)
 		if err != nil {
-			log.Println("savior senderRunning send err:", err)
+			log.Println("Savior write err:", err)
 			break
 		}
 		s.lastWriteTime = time.Now()

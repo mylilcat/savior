@@ -14,14 +14,14 @@ type KCPConnection struct {
 }
 
 func NewKCPConnection(conn *kcp.UDPSession, closeNotifyChan chan *KCPConnection) *KCPConnection {
+	conn.SetNoDelay(1, 10, 2, 1)
+	conn.SetWindowSize(4096, 4096)
+	conn.SetWriteDelay(false)
+	conn.SetACKNoDelay(true)
 	kcp := new(KCPConnection)
 	kcp.conn = conn
 	kcp.closeNotifyChan = closeNotifyChan
 	kcp.isConnected = true
-	conn.SetNoDelay(1, 15, 2, 1)
-	conn.SetWindowSize(1024, 1024)
-	conn.SetWriteDelay(false)
-	conn.SetACKNoDelay(true)
 	kcp.ioWorker = newIOWorker(kcp)
 	return kcp
 }
@@ -53,10 +53,6 @@ func (k *KCPConnection) Read(b []byte) (n int, err error) {
 }
 
 func (k *KCPConnection) Write(b []byte) (n int, err error) {
-	err = k.conn.SetWriteDeadline(time.Now().Add(5 * time.Millisecond))
-	if err != nil {
-		return 0, err
-	}
 	return k.conn.Write(b)
 }
 
