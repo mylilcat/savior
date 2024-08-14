@@ -63,10 +63,15 @@ type FiniteStateMachine struct {
 	period       int64
 	unit         time.Duration
 	ticker       *time.Ticker
+	running      bool
 }
 
 func (f *FiniteStateMachine) CurrentState() *State {
 	return f.currentState
+}
+
+func (f *FiniteStateMachine) IsRunning() bool {
+	return f.running
 }
 
 func (f *FiniteStateMachine) SetPeriodAndUnit(period int64, unit time.Duration) {
@@ -76,11 +81,11 @@ func (f *FiniteStateMachine) SetPeriodAndUnit(period int64, unit time.Duration) 
 
 func (f *FiniteStateMachine) Start() {
 	f.stopChan = make(chan any)
-	if f.period == 0 {
+	if f.period < 15 {
 		f.period = int64(15)
 	}
 
-	if f.unit == 0 {
+	if f.unit <= 0 {
 		f.unit = time.Millisecond
 	}
 	f.ticker = time.NewTicker(time.Duration(f.period) * f.unit)
@@ -89,7 +94,7 @@ func (f *FiniteStateMachine) Start() {
 		f.currentState.EnterTimestamp = time.Now().UnixMilli()
 		f.currentState.onEnter()
 	}
-
+	f.running = true
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -103,6 +108,7 @@ func (f *FiniteStateMachine) Start() {
 			case <-f.ticker.C:
 				f.update()
 			case <-f.stopChan:
+				f.running = false
 				return
 			}
 		}
@@ -117,6 +123,7 @@ func (f *FiniteStateMachine) Stop() {
 func NewFiniteStateMachine(initialState *State, s ...*State) *FiniteStateMachine {
 	return &FiniteStateMachine{
 		states:       s,
+		running:      false,
 		currentState: initialState,
 	}
 }
