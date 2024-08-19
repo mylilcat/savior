@@ -2,6 +2,7 @@ package timer
 
 import (
 	"container/list"
+	"github.com/mylilcat/savior/util"
 	"log"
 	"runtime"
 	"time"
@@ -31,12 +32,15 @@ type Timer struct {
 }
 
 func NewTimer(period int64, unit time.Duration, slotNum int) *Timer {
-	if period <= 0 {
-		period = 1
+
+	if !util.IsTimeUnitValid(unit) {
+		panic("timer unit is invalid")
 	}
-	if unit <= 0 {
-		unit = time.Second
+
+	if unit == time.Millisecond && period < 15 {
+		period = 15
 	}
+
 	if slotNum <= 0 {
 		slotNum = 60
 	}

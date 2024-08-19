@@ -1,6 +1,7 @@
 package fsm
 
 import (
+	"github.com/mylilcat/savior/util"
 	"log"
 	"runtime"
 	"time"
@@ -75,19 +76,22 @@ func (f *FiniteStateMachine) IsRunning() bool {
 }
 
 func (f *FiniteStateMachine) SetPeriodAndUnit(period int64, unit time.Duration) {
+	if util.IsTimeUnitValid(unit) {
+		panic("fsm unit is invalid")
+	}
 	f.period = period
 	f.unit = unit
 }
 
 func (f *FiniteStateMachine) Start() {
+	if f.running {
+		return
+	}
 	f.stopChan = make(chan any)
-	if f.period < 15 {
-		f.period = int64(15)
+	if f.unit == time.Millisecond && f.period < 15 {
+		f.period = 15
 	}
 
-	if f.unit <= 0 {
-		f.unit = time.Millisecond
-	}
 	f.ticker = time.NewTicker(time.Duration(f.period) * f.unit)
 
 	if f.currentState.onEnter != nil {
@@ -116,6 +120,9 @@ func (f *FiniteStateMachine) Start() {
 }
 
 func (f *FiniteStateMachine) Stop() {
+	if !f.running {
+		return
+	}
 	f.ticker.Stop()
 	close(f.stopChan)
 }
@@ -139,7 +146,7 @@ func (f *FiniteStateMachine) update() {
 	}()
 
 	for _, transition := range f.currentState.transitions {
-		if transition.isCanBeConverted() {
+		if transition.isCanBeConverted != nil && transition.isCanBeConverted() {
 			ns := transition.nextState
 			if f.currentState.onExit != nil {
 				f.currentState.onExit()
