@@ -95,6 +95,10 @@ func (f *FiniteStateMachine) Start() {
 		f.period = 1
 	}
 
+	if !util.IsTimeUnitValid(f.unit) {
+		f.unit = time.Millisecond
+	}
+
 	if f.unit == time.Millisecond && f.period < 15 {
 		f.period = 15
 	}
