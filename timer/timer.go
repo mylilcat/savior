@@ -37,6 +37,10 @@ func NewTimer(period int64, unit time.Duration, slotNum int) *Timer {
 		panic("timer unit is invalid")
 	}
 
+	if period == 0 {
+		period = 1
+	}
+
 	if unit == time.Millisecond && period < 15 {
 		period = 15
 	}

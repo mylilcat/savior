@@ -76,7 +76,7 @@ func (f *FiniteStateMachine) IsRunning() bool {
 }
 
 func (f *FiniteStateMachine) SetPeriodAndUnit(period int64, unit time.Duration) {
-	if util.IsTimeUnitValid(unit) {
+	if !util.IsTimeUnitValid(unit) {
 		panic("fsm unit is invalid")
 	}
 	f.period = period
@@ -84,10 +84,17 @@ func (f *FiniteStateMachine) SetPeriodAndUnit(period int64, unit time.Duration) 
 }
 
 func (f *FiniteStateMachine) Start() {
+
 	if f.running {
 		return
 	}
+
 	f.stopChan = make(chan any)
+
+	if f.period == 0 {
+		f.period = 1
+	}
+
 	if f.unit == time.Millisecond && f.period < 15 {
 		f.period = 15
 	}
