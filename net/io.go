@@ -72,12 +72,29 @@ func (s *sender) senderRunning(c Connection) {
 		if !c.IsConnected() {
 			break
 		}
-		_, err := c.Write(bytes)
-		if err != nil {
-			log.Println("Savior write err:", err)
-			break
+		switch c.(type) {
+		case *TCPConnection:
+			_, err := c.Write(bytes)
+			if err != nil {
+				log.Println("Savior write err:", err)
+				break
+			}
+			s.lastWriteTime = time.Now()
+		case *KCPConnection:
+			var errFlag bool
+			go func() {
+				_, err := c.Write(bytes)
+				if err != nil {
+					log.Println("Savior write err:", err)
+					errFlag = true
+				}
+				s.lastWriteTime = time.Now()
+			}()
+			if errFlag {
+				break
+			}
 		}
-		s.lastWriteTime = time.Now()
+
 	}
 	if len(s.sendChan) > 0 {
 		for range s.sendChan {

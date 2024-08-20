@@ -56,12 +56,6 @@ func (k *KCPConnection) Write(b []byte) (n int, err error) {
 	return k.conn.Write(b)
 }
 
-func (k *KCPConnection) AsyncWrite(b []byte) {
-	go func() {
-		k.conn.Write(b)
-	}()
-}
-
 func (k *KCPConnection) Send(b []byte) {
 	if k.isConnected {
 		k.ioWorker.sender.send(b)
