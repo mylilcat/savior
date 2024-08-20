@@ -3,7 +3,7 @@ package service
 import "sync"
 
 type Manager struct {
-	actor              *Actor
+	actor              *actor
 	wg                 sync.WaitGroup
 	serviceInitFunc    func()
 	serviceDestroyFunc func()

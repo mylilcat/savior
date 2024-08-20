@@ -60,7 +60,6 @@ func (k *KCPConnection) Send(b []byte) {
 	if k.isConnected {
 		k.ioWorker.sender.send(b)
 	}
-
 }
 
 func (k *KCPConnection) GetLastReadTime() time.Time {

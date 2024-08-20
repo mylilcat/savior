@@ -7,23 +7,23 @@ import (
 	"sync"
 )
 
-type Actor struct {
+type actor struct {
 	pool           *routinePool
 	actorFunctions map[string]*FunctionInfo
 	wgWorker       sync.WaitGroup
 	running        bool
 }
 
-func NewActor() *Actor {
-	actor := new(Actor)
-	actor.actorFunctions = make(map[string]*FunctionInfo)
-	actor.pool = new(routinePool)
-	actor.pool.workers = newWorkers()
-	return actor
+func NewActor() *actor {
+	a := new(actor)
+	a.actorFunctions = make(map[string]*FunctionInfo)
+	a.pool = new(routinePool)
+	a.pool.workers = newWorkers()
+	return a
 }
 
 type routineWorker struct {
-	taskChan chan *TaskInfo
+	taskChan chan *taskInfo
 	stopChan chan any
 }
 
@@ -31,7 +31,7 @@ type routinePool struct {
 	workers []*routineWorker
 }
 
-func (a *Actor) poolStart() {
+func (a *actor) poolStart() {
 	for _, worker := range a.pool.workers {
 		a.wgWorker.Add(1)
 		worker.run(a)
@@ -42,14 +42,14 @@ func newWorkers() []*routineWorker {
 	var workers []*routineWorker
 	for i := 0; i < 3; i++ {
 		w := new(routineWorker)
-		w.taskChan = make(chan *TaskInfo, 20)
+		w.taskChan = make(chan *taskInfo, 100)
 		w.stopChan = make(chan any, 1)
 		workers = append(workers, w)
 	}
 	return workers
 }
 
-func (w *routineWorker) run(actor *Actor) {
+func (w *routineWorker) run(actor *actor) {
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
@@ -75,7 +75,7 @@ func (w *routineWorker) run(actor *Actor) {
 	}()
 }
 
-func executeTask(actor *Actor, task *TaskInfo) {
+func executeTask(actor *actor, task *taskInfo) {
 	defer func() {
 		if r := recover(); r != nil {
 			buf := make([]byte, 1024)
@@ -107,7 +107,7 @@ type FunctionInfo struct {
 	funcType  reflect.Type
 }
 
-func (a *Actor) RegisterFunction(name string, function any) {
+func (a *actor) RegisterFunction(name string, function any) {
 
 	if name == "" {
 		panic("Function name empty")
@@ -124,11 +124,11 @@ func (a *Actor) RegisterFunction(name string, function any) {
 
 }
 
-func (a *Actor) Send(task *TaskInfo) {
-	a.pool.chooseWorker().Submit(task)
+func (a *actor) send(task *taskInfo) {
+	a.pool.chooseWorker().submit(task)
 }
 
-func (w *routineWorker) Submit(task *TaskInfo) {
+func (w *routineWorker) submit(task *taskInfo) {
 	w.taskChan <- task
 }
 
@@ -145,12 +145,12 @@ func (p *routinePool) chooseWorker() *routineWorker {
 	return w
 }
 
-func (a *Actor) run() {
+func (a *actor) run() {
 	a.poolStart()
 	a.running = true
 }
 
-func (a *Actor) stop() {
+func (a *actor) stop() {
 	for _, worker := range a.pool.workers {
 		close(worker.stopChan)
 	}

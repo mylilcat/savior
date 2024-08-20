@@ -8,7 +8,7 @@ import (
 var services = make(map[string]*Service)
 var wg sync.WaitGroup
 
-func GetServiceActor(name string) *Actor {
+func getServiceActor(name string) *actor {
 	if service, ok := services[name]; ok {
 		return service.manager.actor
 	}

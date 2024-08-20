@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// connection io worker
 type worker struct {
 	sender   *sender
 	receiver *receiver
@@ -28,6 +29,7 @@ func newReceiver() *receiver {
 	return r
 }
 
+// read bytes
 func (r *receiver) receiverRunning(c Connection) {
 	for {
 		if !c.IsConnected() {
@@ -61,6 +63,7 @@ func newSender(c Connection, connType string) *sender {
 	return s
 }
 
+// send bytes
 func (s *sender) send(bytes []byte) {
 	switch s.typ {
 	case "tcp":

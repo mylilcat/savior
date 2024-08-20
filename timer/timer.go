@@ -31,6 +31,11 @@ type Timer struct {
 	curSlot  int
 }
 
+// NewTimer Initialize a time wheel timer. 初始化时间轮定时器
+// time unit,supports down to milliseconds. 时间间隔单位，最小到毫秒。
+// slot,number of slots in the time wheel. 时间轮的槽位数量
+// period,attention pls,if you set unit milliseconds,the minimum time interval is 15 milliseconds!!!!!!!!!!!!!!
+// period，是定时器时间间隔，如果你设置的时间单位是毫秒，那period最小支持到15毫秒。
 func NewTimer(period int64, unit time.Duration, slotNum int) *Timer {
 
 	if !util.IsTimeUnitValid(unit) {
