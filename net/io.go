@@ -76,7 +76,6 @@ func (s *sender) senderRunning(c Connection) {
 		case *TCPConnection:
 			_, err := c.Write(bytes)
 			if err != nil {
-				log.Println("Savior write err:", err)
 				break
 			}
 			s.lastWriteTime = time.Now()
@@ -85,7 +84,6 @@ func (s *sender) senderRunning(c Connection) {
 			go func() {
 				_, err := c.Write(bytes)
 				if err != nil {
-					log.Println("Savior write err:", err)
 					errFlag = true
 				}
 				s.lastWriteTime = time.Now()
