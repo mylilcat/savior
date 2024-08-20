@@ -22,7 +22,7 @@ func NewKCPConnection(conn *kcp.UDPSession, closeNotifyChan chan *KCPConnection)
 	kcp.conn = conn
 	kcp.closeNotifyChan = closeNotifyChan
 	kcp.isConnected = true
-	kcp.ioWorker = newIOWorker(kcp)
+	kcp.ioWorker = newIOWorker(kcp, "kcp")
 	return kcp
 }
 

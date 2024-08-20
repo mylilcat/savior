@@ -18,7 +18,7 @@ func NewTCPConnection(conn net.Conn, closeNotifyChan chan *TCPConnection) *TCPCo
 	tcp.conn = conn
 	tcp.closeNotifyChan = closeNotifyChan
 	tcp.isConnected = true
-	tcp.ioWorker = newIOWorker(tcp)
+	tcp.ioWorker = newIOWorker(tcp, "tcp")
 	return tcp
 }
 

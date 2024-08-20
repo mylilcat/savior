@@ -10,12 +10,11 @@ type worker struct {
 	receiver *receiver
 }
 
-func newIOWorker(c Connection) *worker {
+func newIOWorker(c Connection, connTyp string) *worker {
 	ioWorker := new(worker)
-	ioWorker.sender = newSender()
+	ioWorker.sender = newSender(c, connTyp)
 	ioWorker.receiver = newReceiver()
 	go ioWorker.receiver.receiverRunning(c)
-	go ioWorker.sender.senderRunning(c)
 	return ioWorker
 }
 
@@ -49,56 +48,42 @@ func (r *receiver) receiverRunning(c Connection) {
 }
 
 type sender struct {
-	sendChan      chan []byte
+	typ           string
+	conn          Connection
 	lastWriteTime time.Time
 }
 
-func newSender() *sender {
+func newSender(c Connection, connType string) *sender {
 	s := new(sender)
-	s.sendChan = make(chan []byte, 100)
+	s.conn = c
+	s.typ = connType
 	s.lastWriteTime = time.Now()
 	return s
 }
 
 func (s *sender) send(bytes []byte) {
-	s.sendChan <- bytes
-}
-
-func (s *sender) senderRunning(c Connection) {
-	for bytes := range s.sendChan {
-		if bytes == nil {
-			break
+	switch s.typ {
+	case "tcp":
+		if !s.conn.IsConnected() {
+			return
 		}
-		if !c.IsConnected() {
-			break
+		_, err := s.conn.Write(bytes)
+		if err != nil {
+			s.conn.Close()
+			return
 		}
-		switch c.(type) {
-		case *TCPConnection:
-			_, err := c.Write(bytes)
+		s.lastWriteTime = time.Now()
+	case "kcp":
+		if !s.conn.IsConnected() {
+			return
+		}
+		go func() {
+			_, err := s.conn.Write(bytes)
 			if err != nil {
-				break
+				s.conn.Close()
+				return
 			}
-			s.lastWriteTime = time.Now()
-		case *KCPConnection:
-			var errFlag bool
-			go func() {
-				_, err := c.Write(bytes)
-				if err != nil {
-					errFlag = true
-				}
-				s.lastWriteTime = time.Now()
-			}()
-			if errFlag {
-				break
-			}
-		}
-
+		}()
+		s.lastWriteTime = time.Now()
 	}
-	if len(s.sendChan) > 0 {
-		for range s.sendChan {
-			continue
-		}
-	}
-	close(s.sendChan)
-	c.Close()
 }
