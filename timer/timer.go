@@ -67,6 +67,12 @@ func NewTimer(period int64, unit time.Duration, slotNum int) *Timer {
 	return t
 }
 
+// AddTask add task to the scheduler. 添加延时任务
+// f task
+// delayTime execute task after how long a delay,the delay time unit is the one you set when initializing the timer.
+// delayTime 延时的时间，如果你初始化定时器时设置的时间单位是秒，delayTime = 2，那就是2秒后执行。如果设置的是分钟，那就是2分钟后执行。
+// typ task type are divided into delay tasks (DelayTask) and interval tasks (IntervalTask). If no value is provided, the default is a delay task.
+// typ 任务类型分为两种，(DelayTask)延时任务，以及轮询任务(IntervalTask)，不传值默认为延时任务。
 func (t *Timer) AddTask(f func(), delayTime int64, typ ...any) {
 	if delayTime <= 0 {
 		delayTime = 1

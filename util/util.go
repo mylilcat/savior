@@ -10,3 +10,12 @@ func IsTimeUnitValid(unit time.Duration) bool {
 		return false
 	}
 }
+
+func IsTimeSecondOrTimeMillisecond(unit time.Duration) bool {
+	switch unit {
+	case time.Second, time.Millisecond:
+		return true
+	default:
+		return false
+	}
+}
