@@ -101,7 +101,7 @@ func OnRead(conn net.Connection, data []byte) {
     p.uid = id
     p.conn = conn
     //add to online manager
-    ...
+    p.conn.Write([]byte("登录成功"))
 }
 ```
 时间轮定时器使用
