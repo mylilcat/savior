@@ -563,7 +563,7 @@ func Call1[R any](serviceName string, funcName string, args ...any) (r R) {
 "活动开始了" -> broadcast需要的参数  
 
 调用online 有一个返回值，获取在线玩家方法  
-`p := service.Call1[*player]("online","getPlayer",id)`
+`p := service.Call1[*player]("online","getPlayer",id)`  
 "online" -> 服务名  
 "getPlayer" -> actor方法名  
 id -> getOnlinePlayerById方法需要的参数    
