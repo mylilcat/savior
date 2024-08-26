@@ -404,16 +404,16 @@ import (
 )
 
 var Service *service.Service         //玩家在线管理service
-var onlinePlayers map[string]*player //在线玩家
+var onlinePlayers map[string]*Player //在线玩家
 
-type player struct {
+type Player struct {
     id   string //玩家ID
     Conn *net.TCPConnection
 }
 
 func inti() {
     Service = service.NewService("online")
-    onlinePlayers = make(map[string]*player)
+    onlinePlayers = make(map[string]*Player)
     Service.SetInitFunc(loadCache) //loadCache 会在所有service启动完成后执行
     Service.SetDestroyFunc(savePlayerData) //savePlayerData 服务停服后，所有service执行完正在处理的actor任务后，执行该方法。
     Service.RegisterActorFunction("broadcast", broadcast) //注册广播方法为service的actor方法，提供给campaign service调用。
@@ -427,7 +427,7 @@ func broadcast(msg string) {
     }
 }
 
-func getOnlinePlayerById(id string) *player {
+func getOnlinePlayerById(id string) *Player {
 	return onlinePlayers[id]
 }
 
@@ -452,6 +452,7 @@ import (
     "github.com/mylilcat/savior/net"
     "github.com/mylilcat/savior/service"
     "github.com/mylilcat/savior/timer"
+    "online"
     "time"
 )
 
@@ -467,7 +468,7 @@ func inti() {
 
 // 模拟给指定的在线玩家发奖励，主要是示范下，有返回值的actor方法如何调用。
 func sendOnlineRewardToPlayer(id string) { 
-	p := service.Call1[*player]("online","getPlayer",id) //泛型指定返回值为 *player 且返回值个数为1。
+	p := service.Call1[*online.Player]("online","getPlayer",id) //泛型指定返回值为 *online.Player 且返回值个数为1。
 	p.Conn.Send([]byte("奖励"))
 }
 
@@ -563,11 +564,11 @@ func Call1[R any](serviceName string, funcName string, args ...any) (r R) {
 "活动开始了" -> broadcast需要的参数  
 
 调用online 有一个返回值，获取在线玩家方法  
-`p := service.Call1[*player]("online","getPlayer",id)`  
+`p := service.Call1[*online.Player]("online","getPlayer",id)`  
 "online" -> 服务名  
 "getPlayer" -> actor方法名  
 id -> getOnlinePlayerById方法需要的参数    
-[*player] -> 返回值要转换的类型。  
+[*online.Player] -> 返回值要转换的类型。  
 
 
 
