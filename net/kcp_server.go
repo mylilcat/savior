@@ -12,7 +12,6 @@ type KCPServer struct {
 	Port                string
 	wgServer            sync.WaitGroup
 	wgConn              sync.WaitGroup
-	connLock            sync.Mutex
 	listener            *kcp.Listener
 	connections         sync.Map
 	connCloseNotifyChan chan *KCPConnection

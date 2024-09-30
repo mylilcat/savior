@@ -11,7 +11,6 @@ type TCPServer struct {
 	Port                string
 	wgServer            sync.WaitGroup
 	wgConn              sync.WaitGroup
-	connLock            sync.Mutex
 	listener            net.Listener
 	connections         sync.Map
 	connCloseNotifyChan chan *TCPConnection
