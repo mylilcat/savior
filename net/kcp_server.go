@@ -1,6 +1,8 @@
 package net
 
 import (
+	"github.com/mylilcat/savior/util"
+	"github.com/pkg/errors"
 	"github.com/xtaci/kcp-go/v5"
 	"log"
 	"net"
@@ -25,6 +27,7 @@ func (server *KCPServer) Start() {
 		return
 	}
 	server.listener = listener
+	util.KcpSendPoolInit()
 	go server.run()
 	go server.closedConnWatcher()
 	if IdleMonitoring != nil {
@@ -39,14 +42,15 @@ func (server *KCPServer) run() {
 	for {
 		conn, err := server.listener.AcceptKCP()
 		if err != nil {
-			if _, ok := err.(net.Error); ok && err.(net.Error).Timeout() {
+			var e net.Error
+			if errors.As(err, &e) && err.(net.Error).Timeout() {
 				if delay == 0 {
 					delay = 2 * time.Millisecond
 				} else {
 					delay *= 2
 				}
-				if max := 1 * time.Second; delay > max {
-					delay = max
+				if duration := 1 * time.Second; delay > duration {
+					delay = duration
 				}
 				time.Sleep(delay)
 				continue

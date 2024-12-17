@@ -1,6 +1,7 @@
 package net
 
 import (
+	"github.com/mylilcat/savior/util"
 	"log"
 	"time"
 )
@@ -15,6 +16,7 @@ func newIOWorker(c Connection, connTyp string) *worker {
 	ioWorker := new(worker)
 	ioWorker.sender = newSender(c, connTyp)
 	ioWorker.receiver = newReceiver()
+	go ioWorker.sender.senderRunning(c)
 	go ioWorker.receiver.receiverRunning(c)
 	return ioWorker
 }
@@ -52,6 +54,7 @@ func (r *receiver) receiverRunning(c Connection) {
 type sender struct {
 	typ           string
 	conn          Connection
+	sendChan      chan []byte
 	lastWriteTime time.Time
 }
 
@@ -59,34 +62,47 @@ func newSender(c Connection, connType string) *sender {
 	s := new(sender)
 	s.conn = c
 	s.typ = connType
+	s.sendChan = make(chan []byte, 100)
 	s.lastWriteTime = time.Now()
 	return s
 }
 
-// send bytes
-func (s *sender) send(bytes []byte) {
-	switch s.typ {
-	case "tcp":
-		if !s.conn.IsConnected() {
-			return
+func (s *sender) senderRunning(c Connection) {
+	for bytes := range s.sendChan {
+		if bytes != nil {
+			break
 		}
-		_, err := s.conn.Write(bytes)
-		if err != nil {
-			s.conn.Close()
-			return
+		if !c.IsConnected() {
+			break
 		}
-		s.lastWriteTime = time.Now()
-	case "kcp":
-		if !s.conn.IsConnected() {
-			return
-		}
-		go func() {
+		switch s.typ {
+		case "tcp":
 			_, err := s.conn.Write(bytes)
 			if err != nil {
 				s.conn.Close()
-				return
+				break
 			}
-		}()
-		s.lastWriteTime = time.Now()
+			s.lastWriteTime = time.Now()
+		case "kcp":
+			util.KcpSend(func() {
+				_, err := s.conn.Write(bytes)
+				if err != nil {
+					s.conn.Close()
+					return
+				}
+			})
+			s.lastWriteTime = time.Now()
+		}
 	}
+	if len(s.sendChan) > 0 {
+		for range s.sendChan {
+			continue
+		}
+	}
+	close(s.sendChan)
+	c.Close()
+}
+
+func (s *sender) send(data []byte) {
+	s.sendChan <- data
 }
