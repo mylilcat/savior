@@ -12,12 +12,12 @@ type worker struct {
 	receiver *receiver
 }
 
-func newIOWorker(c Connection, connTyp string) *worker {
+func newIOWorker(c Connection, connTyp string, handler *Handler) *worker {
 	ioWorker := new(worker)
 	ioWorker.sender = newSender(c, connTyp)
 	ioWorker.receiver = newReceiver()
 	go ioWorker.sender.senderRunning(c)
-	go ioWorker.receiver.receiverRunning(c)
+	go ioWorker.receiver.receiverRunning(c, handler.onRead)
 	return ioWorker
 }
 
@@ -32,7 +32,7 @@ func newReceiver() *receiver {
 }
 
 // read bytes
-func (r *receiver) receiverRunning(c Connection) {
+func (r *receiver) receiverRunning(c Connection, onRead func(conn Connection, data []byte)) {
 	for {
 		if !c.IsConnected() {
 			break
@@ -43,8 +43,8 @@ func (r *receiver) receiverRunning(c Connection) {
 			log.Println("Savior receive err:", err)
 			break
 		}
-		if OnRead != nil {
-			OnRead(c, buf[:n])
+		if onRead != nil {
+			onRead(c, buf[:n])
 		}
 		r.lastReadTime = time.Now()
 	}

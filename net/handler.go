@@ -1,7 +1,5 @@
 package net
 
-import "sync"
-
 // OnConnect connection accept handler.
 // 新的连接接入处理函数
 var OnConnect func(c Connection)
@@ -18,4 +16,18 @@ var OnRead func(c Connection, data []byte)
 // 空闲连接处理
 var OnIdle func(c Connection)
 
-var IdleMonitoring func(connections *sync.Map)
+type Handler struct {
+	onConnect    func(c Connection)
+	onDisconnect func(c Connection)
+	onRead       func(c Connection, data []byte)
+	onIdle       func(c Connection)
+}
+
+func NewHandler() *Handler {
+	return &Handler{
+		onConnect:    OnConnect,
+		onDisconnect: OnDisconnect,
+		onRead:       OnRead,
+		onIdle:       OnIdle,
+	}
+}

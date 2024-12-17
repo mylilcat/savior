@@ -13,7 +13,7 @@ type KCPConnection struct {
 	closeNotifyChan chan *KCPConnection
 }
 
-func NewKCPConnection(conn *kcp.UDPSession, closeNotifyChan chan *KCPConnection) *KCPConnection {
+func NewKCPConnection(conn *kcp.UDPSession, closeNotifyChan chan *KCPConnection, handler *Handler) *KCPConnection {
 	conn.SetNoDelay(1, 10, 2, 1)
 	conn.SetWindowSize(4096, 4096)
 	conn.SetWriteDelay(false)
@@ -22,7 +22,7 @@ func NewKCPConnection(conn *kcp.UDPSession, closeNotifyChan chan *KCPConnection)
 	kcp.conn = conn
 	kcp.closeNotifyChan = closeNotifyChan
 	kcp.isConnected = true
-	kcp.ioWorker = newIOWorker(kcp, "kcp")
+	kcp.ioWorker = newIOWorker(kcp, "kcp", handler)
 	return kcp
 }
 

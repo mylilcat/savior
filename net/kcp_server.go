@@ -17,6 +17,8 @@ type KCPServer struct {
 	listener            *kcp.Listener
 	connections         sync.Map
 	connCloseNotifyChan chan *KCPConnection
+	Handler             *Handler
+	IdleMonitor         *IdleMonitor
 }
 
 func (server *KCPServer) Start() {
@@ -30,8 +32,8 @@ func (server *KCPServer) Start() {
 	util.KcpSendPoolInit()
 	go server.run()
 	go server.closedConnWatcher()
-	if IdleMonitoring != nil {
-		IdleMonitoring(&server.connections)
+	if server.IdleMonitor != nil {
+		server.IdleMonitor.idleMonitoring(&server.connections, server.Handler.onIdle)
 	}
 }
 
@@ -57,11 +59,11 @@ func (server *KCPServer) run() {
 			}
 			return
 		}
-		kcpConn := NewKCPConnection(conn, server.connCloseNotifyChan)
+		kcpConn := NewKCPConnection(conn, server.connCloseNotifyChan, server.Handler)
 		server.connections.Store(kcpConn.GetConv(), kcpConn)
 		server.wgConn.Add(1)
-		if OnConnect != nil {
-			OnConnect(kcpConn)
+		if server.Handler.onConnect != nil {
+			server.Handler.onConnect(kcpConn)
 		}
 	}
 }
@@ -71,8 +73,8 @@ func (server *KCPServer) closedConnWatcher() {
 		kcpConn := <-server.connCloseNotifyChan
 		if !kcpConn.IsConnected() {
 			if _, loaded := server.connections.LoadAndDelete(kcpConn.GetConv()); loaded {
-				if OnDisconnect != nil {
-					OnDisconnect(kcpConn)
+				if server.Handler.onDisconnect != nil {
+					server.Handler.onDisconnect(kcpConn)
 				}
 				server.wgConn.Done()
 			}

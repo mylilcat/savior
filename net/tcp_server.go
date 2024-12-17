@@ -1,6 +1,7 @@
 package net
 
 import (
+	"github.com/pkg/errors"
 	"log"
 	"net"
 	"sync"
@@ -14,6 +15,8 @@ type TCPServer struct {
 	listener            net.Listener
 	connections         sync.Map
 	connCloseNotifyChan chan *TCPConnection
+	Handler             *Handler
+	IdleMonitor         *IdleMonitor
 }
 
 func (server *TCPServer) Start() {
@@ -26,8 +29,8 @@ func (server *TCPServer) Start() {
 	server.listener = listener
 	go server.run()
 	go server.closedConnWatcher()
-	if IdleMonitoring != nil {
-		IdleMonitoring(&server.connections)
+	if server.IdleMonitor != nil {
+		server.IdleMonitor.idleMonitoring(&server.connections, server.Handler.onIdle)
 	}
 }
 
@@ -38,14 +41,15 @@ func (server *TCPServer) run() {
 	for {
 		conn, err := server.listener.Accept()
 		if err != nil {
-			if _, ok := err.(net.Error); ok && err.(net.Error).Timeout() {
+			var e net.Error
+			if errors.As(err, &e) && err.(net.Error).Timeout() {
 				if delay == 0 {
 					delay = 2 * time.Millisecond
 				} else {
 					delay *= 2
 				}
-				if max := 1 * time.Second; delay > max {
-					delay = max
+				if duration := 1 * time.Second; delay > duration {
+					delay = duration
 				}
 				time.Sleep(delay)
 				continue

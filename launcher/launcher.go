@@ -2,9 +2,7 @@ package launcher
 
 import (
 	"github.com/mylilcat/savior/net"
-	"github.com/mylilcat/savior/timer"
 	"github.com/mylilcat/savior/util"
-	"sync"
 	"time"
 )
 
@@ -21,20 +19,8 @@ var (
 	proto string
 
 	//connection idle detection 连接空闲检测
-	iMonitor *idleMonitor
+	IMonitor *net.IdleMonitor
 )
-
-type idleMonitor struct {
-	//read idle timeout. 连接读超时
-	readIdle int64
-
-	//write idle timeout. 连接写超时
-	writeIdle int64
-
-	//time unit,supports down to milliseconds. 超时时间单位，最小支持到毫秒。
-	//time.Microsecond, time.Millisecond, time.Second, time.Minute, time.Hour
-	unit time.Duration
-}
 
 // SetProto set server proto. 设置服务协议
 func SetProto(p string) {
@@ -53,12 +39,11 @@ func SetIdleMonitor(readIdle int64, writeIdle int64, unit time.Duration) {
 	if readIdle < 0 || writeIdle < 0 || !util.IsTimeUnitValid(unit) {
 		return
 	}
-	iMonitor = &idleMonitor{
-		readIdle:  readIdle,
-		writeIdle: writeIdle,
-		unit:      unit,
+	IMonitor = &net.IdleMonitor{
+		ReadIdle:  readIdle,
+		WriteIdle: writeIdle,
+		Unit:      unit,
 	}
-	net.IdleMonitoring = idleMonitoring
 }
 
 // ServerStart server start. 服務启动
@@ -67,47 +52,19 @@ func ServerStart() {
 	case TCP:
 		s := new(net.TCPServer)
 		s.Port = port
+		s.Handler = net.NewHandler()
+		s.IdleMonitor = IMonitor
 		s.Start()
 	case KCP:
 		s := new(net.KCPServer)
 		s.Port = port
+		s.Handler = net.NewHandler()
+		s.IdleMonitor = IMonitor
 		s.Start()
 	default:
 		s := new(net.TCPServer)
 		s.Port = port
+		s.Handler = net.NewHandler()
 		s.Start()
 	}
-}
-
-// connection idle checking. 连接空闲检测方法
-func idleMonitoring(connections *sync.Map) {
-	if iMonitor == nil {
-		return
-	}
-	if !util.IsTimeUnitValid(iMonitor.unit) {
-		return
-	}
-	var period int64
-	if iMonitor.readIdle >= iMonitor.writeIdle {
-		period = iMonitor.readIdle
-	} else {
-		period = iMonitor.writeIdle
-	}
-
-	idleTimer := timer.NewTimer(period, iMonitor.unit, 1)
-	idleTimer.Start()
-	idleTimer.AddTask(func() {
-		connections.Range(func(key, value any) bool {
-			conn := value.(net.Connection)
-			if iMonitor.readIdle > 0 && conn.GetLastReadTime().Add(time.Duration(iMonitor.readIdle)*iMonitor.unit).Before(time.Now()) {
-				net.OnIdle(conn)
-				return true
-			}
-			if iMonitor.writeIdle > 0 && conn.GetLastWriteTime().Add(time.Duration(iMonitor.writeIdle)*iMonitor.unit).Before(time.Now()) {
-				net.OnIdle(conn)
-				return true
-			}
-			return true
-		})
-	}, period, timer.IntervalTask)
 }
