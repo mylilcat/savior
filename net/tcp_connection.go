@@ -13,12 +13,12 @@ type TCPConnection struct {
 	closeNotifyChan chan *TCPConnection
 }
 
-func NewTCPConnection(conn net.Conn, closeNotifyChan chan *TCPConnection) *TCPConnection {
+func NewTCPConnection(conn net.Conn, closeNotifyChan chan *TCPConnection, handler *Handler) *TCPConnection {
 	tcp := new(TCPConnection)
 	tcp.conn = conn
 	tcp.closeNotifyChan = closeNotifyChan
 	tcp.isConnected = true
-	tcp.ioWorker = newIOWorker(tcp, "tcp")
+	tcp.ioWorker = newIOWorker(tcp, "tcp", handler)
 	return tcp
 }
 
