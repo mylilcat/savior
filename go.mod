@@ -1,6 +1,8 @@
 module github.com/mylilcat/savior
 
-go 1.18
+go 1.21
+
+toolchain go1.21.5
 
 require github.com/xtaci/kcp-go/v5 v5.6.7
 

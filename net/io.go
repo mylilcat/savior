@@ -69,7 +69,7 @@ func newSender(c Connection, connType string) *sender {
 
 func (s *sender) senderRunning(c Connection) {
 	for bytes := range s.sendChan {
-		if bytes != nil {
+		if bytes == nil {
 			break
 		}
 		if !c.IsConnected() {
