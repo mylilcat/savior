@@ -56,7 +56,7 @@ func (server *TCPServer) run() {
 			}
 			return
 		}
-		tcpConn := NewTCPConnection(conn, server.connCloseNotifyChan)
+		tcpConn := NewTCPConnection(conn, server.connCloseNotifyChan, server.Handler)
 		server.connections.Store(tcpConn.conn.RemoteAddr(), tcpConn)
 		server.wgConn.Add(1)
 		if OnConnect != nil {

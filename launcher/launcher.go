@@ -65,6 +65,7 @@ func ServerStart() {
 		s := new(net.TCPServer)
 		s.Port = port
 		s.Handler = net.NewHandler()
+		s.IdleMonitor = IMonitor
 		s.Start()
 	}
 }
