@@ -28,11 +28,17 @@ func ServicesRun() {
 	lock.Lock()
 	defer lock.Unlock()
 	for _, service := range services {
+		if service.manager.running {
+			continue
+		}
 		wg.Add(1)
 		log.Println("savior service name:", service.name)
 		go service.manager.run()
 	}
 	for _, service := range services {
+		if service.manager.running {
+			continue
+		}
 		if service.manager.serviceInitFunc != nil {
 			service.manager.serviceInitFunc()
 		}
@@ -43,6 +49,9 @@ func ServicesStop() {
 	lock.Lock()
 	defer lock.Unlock()
 	for _, service := range services {
+		if !service.manager.running {
+			continue
+		}
 		service.manager.stop()
 		service.manager.wg.Wait()
 		if service.manager.serviceDestroyFunc != nil {
