@@ -7,6 +7,7 @@ import (
 
 var services = make(map[string]*Service)
 var wg sync.WaitGroup
+var lock sync.Mutex
 
 func getServiceActor(name string) *actor {
 	if service, ok := services[name]; ok {
@@ -24,6 +25,8 @@ func Register(service *Service) {
 }
 
 func ServicesRun() {
+	lock.Lock()
+	defer lock.Unlock()
 	for _, service := range services {
 		wg.Add(1)
 		log.Println("savior service name:", service.name)
@@ -33,11 +36,12 @@ func ServicesRun() {
 		if service.manager.serviceInitFunc != nil {
 			service.manager.serviceInitFunc()
 		}
-
 	}
 }
 
 func ServicesStop() {
+	lock.Lock()
+	defer lock.Unlock()
 	for _, service := range services {
 		service.manager.stop()
 		service.manager.wg.Wait()
