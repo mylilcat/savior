@@ -87,7 +87,11 @@ func executeTask(actor *actor, task *taskInfo) {
 		var argValues []reflect.Value
 		if functionInfo.funcType.NumIn() > 0 {
 			for _, arg := range task.args {
-				argValues = append(argValues, reflect.ValueOf(arg))
+				if arg == nil {
+					argValues = append(argValues, reflect.Zero(functionInfo.funcType.In(len(argValues))))
+				} else {
+					argValues = append(argValues, reflect.ValueOf(arg))
+				}
 			}
 		}
 		resultValues := functionInfo.funcValue.Call(argValues)
