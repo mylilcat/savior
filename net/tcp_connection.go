@@ -49,7 +49,9 @@ func (t *TCPConnection) Write(b []byte) (n int, err error) {
 }
 
 func (t *TCPConnection) Send(b []byte) {
-	t.ioWorker.sender.send(b)
+	if t.isConnected {
+		t.ioWorker.sender.send(b)
+	}
 }
 
 func (t *TCPConnection) GetLastReadTime() time.Time {
