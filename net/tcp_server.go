@@ -59,8 +59,8 @@ func (server *TCPServer) run() {
 		tcpConn := NewTCPConnection(conn, server.connCloseNotifyChan, server.Handler)
 		server.connections.Store(tcpConn.conn.RemoteAddr(), tcpConn)
 		server.wgConn.Add(1)
-		if OnConnect != nil {
-			OnConnect(tcpConn)
+		if server.Handler.onConnect != nil {
+			server.Handler.onConnect(tcpConn)
 		}
 	}
 }
@@ -70,8 +70,8 @@ func (server *TCPServer) closedConnWatcher() {
 		tcpConn := <-server.connCloseNotifyChan
 		if !tcpConn.IsConnected() {
 			if _, loaded := server.connections.LoadAndDelete(tcpConn.conn.RemoteAddr()); loaded {
-				if OnDisconnect != nil {
-					OnDisconnect(tcpConn)
+				if server.Handler.onDisconnect != nil {
+					server.Handler.onDisconnect(tcpConn)
 				}
 				server.wgConn.Done()
 			}
