@@ -24,10 +24,15 @@ type Handler struct {
 }
 
 func NewHandler() *Handler {
-	return &Handler{
+	h := &Handler{
 		onConnect:    OnConnect,
 		onDisconnect: OnDisconnect,
 		onRead:       OnRead,
 		onIdle:       OnIdle,
 	}
+	OnConnect = nil
+	OnDisconnect = nil
+	OnRead = nil
+	OnIdle = nil
+	return h
 }

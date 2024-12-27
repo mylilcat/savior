@@ -46,26 +46,32 @@ func SetIdleMonitor(readIdle int64, writeIdle int64, unit time.Duration) {
 	}
 }
 
-// ServerStart server start. 服務启动
+// ServerStart server start. 服务启动
 func ServerStart() {
 	switch proto {
 	case TCP:
 		s := new(net.TCPServer)
 		s.Port = port
+		port = ""
 		s.Handler = net.NewHandler()
 		s.IdleMonitor = IMonitor
+		IMonitor = nil
 		s.Start()
 	case KCP:
 		s := new(net.KCPServer)
 		s.Port = port
+		port = ""
 		s.Handler = net.NewHandler()
 		s.IdleMonitor = IMonitor
+		IMonitor = nil
 		s.Start()
 	default:
 		s := new(net.TCPServer)
 		s.Port = port
+		port = ""
 		s.Handler = net.NewHandler()
 		s.IdleMonitor = IMonitor
+		IMonitor = nil
 		s.Start()
 	}
 }
