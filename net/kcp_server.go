@@ -22,6 +22,7 @@ type KCPServer struct {
 }
 
 func (server *KCPServer) Start() {
+	server.connections = sync.Map{}
 	server.connCloseNotifyChan = make(chan *KCPConnection, 100)
 	listener, err := kcp.ListenWithOptions("0.0.0.0:"+server.Port, nil, 0, 0)
 	if err != nil {
@@ -60,7 +61,7 @@ func (server *KCPServer) run() {
 			return
 		}
 		kcpConn := NewKCPConnection(conn, server.connCloseNotifyChan, server.Handler)
-		server.connections.Store(kcpConn.GetConv(), kcpConn)
+		server.connections.Store(kcpConn.conn.RemoteAddr(), kcpConn)
 		server.wgConn.Add(1)
 		if server.Handler.onConnect != nil {
 			server.Handler.onConnect(kcpConn)
@@ -72,7 +73,7 @@ func (server *KCPServer) closedConnWatcher() {
 	for {
 		kcpConn := <-server.connCloseNotifyChan
 		if !kcpConn.IsConnected() {
-			if _, loaded := server.connections.LoadAndDelete(kcpConn.GetConv()); loaded {
+			if _, loaded := server.connections.LoadAndDelete(kcpConn.conn.RemoteAddr()); loaded {
 				if server.Handler.onDisconnect != nil {
 					server.Handler.onDisconnect(kcpConn)
 				}

@@ -20,6 +20,7 @@ type TCPServer struct {
 }
 
 func (server *TCPServer) Start() {
+	server.connections = sync.Map{}
 	server.connCloseNotifyChan = make(chan *TCPConnection, 100)
 	listener, err := net.Listen("tcp", "0.0.0.0:"+server.Port)
 	if err != nil {
