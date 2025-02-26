@@ -37,7 +37,7 @@ func OnIdle(conn net.Connection) {
 
 func main() {
     savior.BindPort("8000") //设置服务端口
-    savior.SetProto("tcp") //设置协议 使用kcp协议填 "kcp" 
+    savior.SetProto("tcp") //设置协议 使用kcp协议填 "kcp"  websocket协议填 "ws"
     savior.SetOnConnectHandler(OnConnect)
     savior.SetOnDisconnectHandler(OnDisConnect)
     savior.SetOnReadHandler(OnRead)
