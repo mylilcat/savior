@@ -9,6 +9,7 @@ import (
 const (
 	TCP = "tcp"
 	KCP = "kcp"
+	WS  = "ws"
 )
 
 var (
@@ -59,6 +60,14 @@ func ServerStart() {
 		s.Start()
 	case KCP:
 		s := new(net.KCPServer)
+		s.Port = port
+		port = ""
+		s.Handler = net.NewHandler()
+		s.IdleMonitor = IMonitor
+		IMonitor = nil
+		s.Start()
+	case WS:
+		s := new(net.WSServer)
 		s.Port = port
 		port = ""
 		s.Handler = net.NewHandler()

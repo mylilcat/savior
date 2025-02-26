@@ -12,6 +12,9 @@ type worker struct {
 	receiver *receiver
 }
 
+type wsWorker struct {
+}
+
 func newIOWorker(c Connection, connTyp string, handler *Handler) *worker {
 	ioWorker := new(worker)
 	ioWorker.sender = newSender(c, connTyp)
@@ -76,13 +79,6 @@ func (s *sender) senderRunning(c Connection) {
 			break
 		}
 		switch s.typ {
-		case "tcp":
-			_, err := s.conn.Write(bytes)
-			if err != nil {
-				s.conn.Close()
-				break
-			}
-			s.lastWriteTime = time.Now()
 		case "kcp":
 			util.KcpSend(func() {
 				_, err := s.conn.Write(bytes)
@@ -91,6 +87,13 @@ func (s *sender) senderRunning(c Connection) {
 					return
 				}
 			})
+			s.lastWriteTime = time.Now()
+		default:
+			_, err := s.conn.Write(bytes)
+			if err != nil {
+				s.conn.Close()
+				break
+			}
 			s.lastWriteTime = time.Now()
 		}
 	}
