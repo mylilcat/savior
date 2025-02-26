@@ -51,11 +51,6 @@ func (server *WSServer) Start() {
 
 func (server *WSServer) run() {
 	httpServer := &http.Server{}
-	err := httpServer.Serve(server.listener)
-	if err != nil {
-		log.Println("savior http start err:", err)
-		return
-	}
 	httpServer.Handler = server.wsHandler
 	httpServer.MaxHeaderBytes = 1024
 	serveErr := httpServer.Serve(server.listener)
