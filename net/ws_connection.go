@@ -52,9 +52,10 @@ func (ws *WSConnection) Read(b []byte) (n int, err error) {
 	if err != nil {
 		return 0, err
 	}
-	if messageType != websocket.BinaryMessage {
+	if messageType != websocket.BinaryMessage && messageType != websocket.TextMessage {
 		return 0, fmt.Errorf("mssage type not supported: %d", messageType)
 	}
+
 	n = copy(b, msgBytes)
 	if n < len(msgBytes) {
 		ws.buffer = msgBytes[n:]
