@@ -87,8 +87,9 @@ func (server *WSServer) closedConnWatcher() {
 				if server.Handler.onDisconnect != nil {
 					server.Handler.onDisconnect(wsConn)
 				}
+				server.wgConn.Done()
 			}
-			server.wgConn.Done()
+
 		}
 	}
 }
