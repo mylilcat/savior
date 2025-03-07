@@ -1,6 +1,7 @@
 package launcher
 
 import (
+	"github.com/gorilla/websocket"
 	"github.com/mylilcat/savior/net"
 	"github.com/mylilcat/savior/util"
 	"time"
@@ -21,6 +22,8 @@ var (
 
 	//connection idle detection 连接空闲检测
 	IMonitor *net.IdleMonitor
+
+	webSocketMessageType int
 )
 
 // SetProto set server proto. 设置服务协议
@@ -45,6 +48,10 @@ func SetIdleMonitor(readIdle int64, writeIdle int64, unit time.Duration) {
 		WriteIdle: writeIdle,
 		Unit:      unit,
 	}
+}
+
+func SetWebSocketMessageType(t int) {
+	webSocketMessageType = t
 }
 
 // ServerStart server start. 服务启动
@@ -73,6 +80,11 @@ func ServerStart() {
 		s.Handler = net.NewHandler()
 		s.IdleMonitor = IMonitor
 		IMonitor = nil
+		if webSocketMessageType > 0 {
+			s.MessageType = webSocketMessageType
+		} else {
+			s.MessageType = websocket.TextMessage
+		}
 		s.Start()
 	default:
 		s := new(net.TCPServer)

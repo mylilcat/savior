@@ -18,6 +18,7 @@ type WSServer struct {
 	Handler             *Handler
 	wsHandler           *wsHandler
 	IdleMonitor         *IdleMonitor
+	MessageType         int
 }
 
 type wsHandler struct {
@@ -71,7 +72,7 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	wsConn := NewWSConnection(conn, h.s.connCloseNotifyChan, h.s.Handler)
+	wsConn := NewWSConnection(conn, h.s.connCloseNotifyChan, h.s.Handler, h.s.MessageType)
 	h.s.connections.Store(wsConn.conn.RemoteAddr(), wsConn)
 	h.s.wgConn.Add(1)
 	if h.s.Handler.onConnect != nil {

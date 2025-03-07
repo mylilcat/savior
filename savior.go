@@ -49,3 +49,7 @@ func SetOnIdleHandler(f func(c net.Connection)) {
 func SetIdleMonitor(readIdle int64, writeIdle int64, unit time.Duration) {
 	launcher.SetIdleMonitor(readIdle, writeIdle, unit)
 }
+
+func SetWebSocketMessageType(t int) {
+	launcher.SetWebSocketMessageType(t)
+}

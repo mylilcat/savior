@@ -12,14 +12,16 @@ type WSConnection struct {
 	ioWorker        *worker
 	isConnected     bool
 	closeNotifyChan chan *WSConnection
+	messageType     int
 	buffer          []byte
 }
 
-func NewWSConnection(conn *websocket.Conn, closeNotifyChan chan *WSConnection, handler *Handler) *WSConnection {
+func NewWSConnection(conn *websocket.Conn, closeNotifyChan chan *WSConnection, handler *Handler, messageType int) *WSConnection {
 	ws := new(WSConnection)
 	ws.conn = conn
 	ws.closeNotifyChan = closeNotifyChan
 	ws.isConnected = true
+	ws.messageType = messageType
 	ws.ioWorker = newIOWorker(ws, "ws", handler)
 	return ws
 }
@@ -64,9 +66,17 @@ func (ws *WSConnection) Read(b []byte) (n int, err error) {
 }
 
 func (ws *WSConnection) Write(b []byte) (n int, err error) {
-	err = ws.conn.WriteMessage(websocket.BinaryMessage, b)
-	if err != nil {
-		return 0, err
+	if ws.messageType == websocket.TextMessage {
+		err = ws.conn.WriteMessage(websocket.TextMessage, b)
+		if err != nil {
+			return 0, err
+		}
+	}
+	if ws.messageType == websocket.BinaryMessage {
+		err = ws.conn.WriteMessage(websocket.BinaryMessage, b)
+		if err != nil {
+			return 0, err
+		}
 	}
 	return len(b), nil
 }
