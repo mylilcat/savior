@@ -3,6 +3,7 @@ package net
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"net"
 	"time"
 )
 
@@ -93,4 +94,8 @@ func (ws *WSConnection) GetLastReadTime() time.Time {
 
 func (ws *WSConnection) GetLastWriteTime() time.Time {
 	return ws.ioWorker.sender.lastWriteTime
+}
+
+func (ws *WSConnection) GetRemoteAddr() net.Addr {
+	return ws.conn.RemoteAddr()
 }

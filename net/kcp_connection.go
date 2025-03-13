@@ -2,6 +2,7 @@ package net
 
 import (
 	"github.com/xtaci/kcp-go/v5"
+	"net"
 	"time"
 )
 
@@ -68,4 +69,8 @@ func (k *KCPConnection) GetLastReadTime() time.Time {
 
 func (k *KCPConnection) GetLastWriteTime() time.Time {
 	return k.ioWorker.sender.lastWriteTime
+}
+
+func (k *KCPConnection) GetRemoteAddr() net.Addr {
+	return k.conn.RemoteAddr()
 }

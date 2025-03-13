@@ -1,6 +1,9 @@
 package net
 
-import "time"
+import (
+	"net"
+	"time"
+)
 
 type Connection interface {
 	// GetId get the ID based on your logic,for example the player ID.
@@ -16,4 +19,5 @@ type Connection interface {
 	Send(b []byte)
 	GetLastReadTime() time.Time
 	GetLastWriteTime() time.Time
+	GetRemoteAddr() net.Addr
 }

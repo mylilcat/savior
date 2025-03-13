@@ -61,3 +61,7 @@ func (t *TCPConnection) GetLastReadTime() time.Time {
 func (t *TCPConnection) GetLastWriteTime() time.Time {
 	return t.ioWorker.sender.lastWriteTime
 }
+
+func (t *TCPConnection) GetRemoteAddr() net.Addr {
+	return t.conn.RemoteAddr()
+}
