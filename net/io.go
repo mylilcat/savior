@@ -1,8 +1,8 @@
 package net
 
 import (
+	saviorLog "github.com/mylilcat/savior/log"
 	"github.com/mylilcat/savior/util"
-	"log"
 	"time"
 )
 
@@ -43,7 +43,7 @@ func (r *receiver) receiverRunning(c Connection, onRead func(conn Connection, da
 		buf := make([]byte, 4096)
 		n, err := c.Read(buf)
 		if err != nil {
-			log.Println("Savior receive err:", err)
+			saviorLog.Print("receive err:", err)
 			break
 		}
 		if onRead != nil {

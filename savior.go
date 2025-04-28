@@ -53,3 +53,7 @@ func SetIdleMonitor(readIdle int64, writeIdle int64, unit time.Duration) {
 func SetWebSocketMessageType(t int) {
 	launcher.SetWebSocketMessageType(t)
 }
+
+func EnableDebugLog() {
+	launcher.EnableDebugLog()
+}

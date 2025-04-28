@@ -2,9 +2,10 @@ package timer
 
 import (
 	"container/list"
+	saviorLog "github.com/mylilcat/savior/log"
 	"github.com/mylilcat/savior/util"
-	"log"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -29,6 +30,8 @@ type Timer struct {
 	taskChan chan *task
 	slots    []*list.List
 	curSlot  int
+	running  bool
+	lock     sync.Mutex
 }
 
 // NewTimer Initialize a time wheel timer. 初始化时间轮定时器
@@ -39,7 +42,7 @@ type Timer struct {
 func NewTimer(period int64, unit time.Duration, slotNum int) *Timer {
 
 	if !util.IsTimeUnitValid(unit) {
-		panic("timer unit is invalid")
+		panic("[SAVIOR] timer unit is invalid")
 	}
 
 	if period == 0 {
@@ -98,12 +101,18 @@ func (t *Timer) AddTask(f func(), delayTime int64, typ ...any) {
 }
 
 func (t *Timer) Start() {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	if t.running {
+		saviorLog.Print("Timer already started")
+		return
+	}
 	go func() {
 		defer func() {
 			if r := recover(); r != nil {
 				buf := make([]byte, 1024)
 				n := runtime.Stack(buf, false)
-				log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
+				saviorLog.Print("timer start panicked: %v\nStack trace:\n%s", r, buf[:n])
 			}
 		}()
 		for {
@@ -117,11 +126,19 @@ func (t *Timer) Start() {
 			}
 		}
 	}()
+	t.running = true
 }
 
 func (t *Timer) Stop() {
+	t.lock.Lock()
+	defer t.lock.Unlock()
+	if !t.running {
+		saviorLog.Print("Timer already stopped")
+		return
+	}
 	t.ticker.Stop()
 	close(t.stopChan)
+	t.running = false
 }
 
 func (t *Timer) tick() {
@@ -139,7 +156,7 @@ func (t *Timer) tick() {
 				if r := recover(); r != nil {
 					buf := make([]byte, 1024)
 					n := runtime.Stack(buf, false)
-					log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
+					saviorLog.Print("timer tick panicked: %v\nStack trace:\n%s", r, buf[:n])
 				}
 			}()
 			if tsk.typ == IntervalTask {

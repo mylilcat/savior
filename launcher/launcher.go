@@ -2,6 +2,7 @@ package launcher
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/mylilcat/savior/log"
 	"github.com/mylilcat/savior/net"
 	"github.com/mylilcat/savior/util"
 	"time"
@@ -24,6 +25,8 @@ var (
 	IMonitor *net.IdleMonitor
 
 	webSocketMessageType int
+
+	enableDebugLog bool
 )
 
 // SetProto set server proto. 设置服务协议
@@ -50,12 +53,19 @@ func SetIdleMonitor(readIdle int64, writeIdle int64, unit time.Duration) {
 	}
 }
 
+func EnableDebugLog() {
+	enableDebugLog = true
+}
+
 func SetWebSocketMessageType(t int) {
 	webSocketMessageType = t
 }
 
 // ServerStart server start. 服务启动
 func ServerStart() {
+	if enableDebugLog {
+		log.NewSaviorLogger()
+	}
 	switch proto {
 	case TCP:
 		s := new(net.TCPServer)

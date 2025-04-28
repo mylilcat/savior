@@ -1,7 +1,7 @@
 package service
 
 import (
-	"log"
+	saviorLog "github.com/mylilcat/savior/log"
 	"reflect"
 	"runtime"
 	"sync"
@@ -55,7 +55,7 @@ func (w *routineWorker) run(actor *actor) {
 			if r := recover(); r != nil {
 				buf := make([]byte, 1024)
 				n := runtime.Stack(buf, false)
-				log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
+				saviorLog.Print("routineWorker panicked: %v\nStack trace:\n%s", r, buf[:n])
 			}
 		}()
 		for {
@@ -80,7 +80,7 @@ func executeTask(actor *actor, task *taskInfo) {
 		if r := recover(); r != nil {
 			buf := make([]byte, 1024)
 			n := runtime.Stack(buf, false)
-			log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
+			saviorLog.Print("executeTask panicked: %v\nStack trace:\n%s", r, buf[:n], "function name:", task.functionName)
 		}
 	}()
 	if functionInfo, ok := actor.actorFunctions[task.functionName]; ok {
@@ -114,12 +114,12 @@ type FunctionInfo struct {
 func (a *actor) RegisterFunction(name string, function any) {
 
 	if name == "" {
-		panic("Function name empty")
+		panic("[SAVIOR] Function name empty")
 	}
 	funcValue := reflect.ValueOf(function)
 	funcType := reflect.TypeOf(function)
 	if funcValue.Kind() != reflect.Func {
-		panic("Error registering actor function: the item to be registered is not a function type.")
+		panic("[SAVIOR] Error registering actor function: the item to be registered is not a function type.")
 	}
 	functionInfo := new(FunctionInfo)
 	functionInfo.funcValue = funcValue

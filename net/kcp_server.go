@@ -1,10 +1,10 @@
 package net
 
 import (
+	saviorLog "github.com/mylilcat/savior/log"
 	"github.com/mylilcat/savior/util"
 	"github.com/pkg/errors"
 	"github.com/xtaci/kcp-go/v5"
-	"log"
 	"net"
 	"sync"
 	"time"
@@ -26,7 +26,7 @@ func (server *KCPServer) Start() {
 	server.connCloseNotifyChan = make(chan *KCPConnection, 100)
 	listener, err := kcp.ListenWithOptions("0.0.0.0:"+server.Port, nil, 0, 0)
 	if err != nil {
-		log.Println("server start err:", err)
+		saviorLog.Print("server start err:", err)
 		return
 	}
 	server.listener = listener

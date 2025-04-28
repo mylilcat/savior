@@ -1,7 +1,7 @@
 package service
 
 import (
-	"log"
+	saviorLog "github.com/mylilcat/savior/log"
 	"sync"
 )
 
@@ -18,10 +18,10 @@ func getServiceActor(name string) *actor {
 
 func Register(service *Service) {
 	if _, ok := services[service.name]; ok {
-		panic("service name repeated")
+		panic("[SAVIOR] service name repeated")
 	}
 	services[service.name] = service
-	log.Print("savior service register,name:", service.name)
+	saviorLog.Print("service register, name:", service.name)
 }
 
 func ServicesRun() {
@@ -32,7 +32,6 @@ func ServicesRun() {
 			continue
 		}
 		wg.Add(1)
-		log.Println("savior service name:", service.name)
 		go service.manager.run()
 	}
 	for _, service := range services {

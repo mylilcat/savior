@@ -1,9 +1,10 @@
 package fsm
 
 import (
+	saviorLog "github.com/mylilcat/savior/log"
 	"github.com/mylilcat/savior/util"
-	"log"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -71,6 +72,7 @@ type FiniteStateMachine struct {
 	unit         time.Duration
 	ticker       *time.Ticker
 	running      bool
+	lock         sync.Mutex
 }
 
 // NewFiniteStateMachine create new finite state machine. 创建一个状态机
@@ -103,8 +105,10 @@ func (f *FiniteStateMachine) SetPeriodAndUnit(period int64, unit time.Duration) 
 }
 
 func (f *FiniteStateMachine) Start() {
-
+	f.lock.Lock()
+	defer f.lock.Unlock()
 	if f.running {
+		saviorLog.Print("FiniteStateMachine already running")
 		return
 	}
 
@@ -141,7 +145,7 @@ func (f *FiniteStateMachine) Start() {
 			if r := recover(); r != nil {
 				buf := make([]byte, 1024)
 				n := runtime.Stack(buf, false)
-				log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
+				saviorLog.Print("FiniteStateMachine start panicked: %v\nStack trace:\n%s", r, buf[:n])
 			}
 		}()
 		for {
@@ -157,7 +161,10 @@ func (f *FiniteStateMachine) Start() {
 }
 
 func (f *FiniteStateMachine) Stop() {
+	f.lock.Lock()
+	defer f.lock.Unlock()
 	if !f.running {
+		saviorLog.Print("FiniteStateMachine already stopped")
 		return
 	}
 	f.ticker.Stop()
@@ -170,7 +177,7 @@ func (f *FiniteStateMachine) update() {
 		if r := recover(); r != nil {
 			buf := make([]byte, 1024)
 			n := runtime.Stack(buf, false)
-			log.Printf("Recovered from panic: %v\nStack trace:\n%s", r, buf[:n])
+			saviorLog.Print("FiniteStateMachine update panicked: %v\nStack trace:\n%s", r, buf[:n])
 		}
 	}()
 

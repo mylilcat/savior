@@ -2,6 +2,7 @@ package net
 
 import (
 	"github.com/gorilla/websocket"
+	saviorLog "github.com/mylilcat/savior/log"
 	"log"
 	"net"
 	"net/http"
@@ -39,7 +40,7 @@ func (server *WSServer) Start() {
 	}
 	listener, err := net.Listen("tcp", "0.0.0.0:"+server.Port)
 	if err != nil {
-		log.Println("server start err:", err)
+		saviorLog.Print("server start err:", err)
 		return
 	}
 	server.listener = listener
