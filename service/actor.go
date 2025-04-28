@@ -102,8 +102,9 @@ func executeTask(actor *actor, task *taskInfo) {
 			}
 			task.resultChan <- results
 		}
+	} else {
+		panic("[SAVIOR] actor function not found: " + task.functionName)
 	}
-	panic("[SAVIOR] actor function not found: " + task.functionName)
 	return
 }
 
