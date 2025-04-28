@@ -1,6 +1,9 @@
 package service
 
-import "sync"
+import (
+	saviorLog "github.com/mylilcat/savior/log"
+	"sync"
+)
 
 type Service struct {
 	name      string
@@ -60,6 +63,7 @@ type taskInfo struct {
 func Call(serviceName string, funcName string, args ...any) {
 	targetActor := getServiceActor(serviceName)
 	if targetActor == nil {
+		saviorLog.Print("service not exist: %s", serviceName)
 		return
 	}
 	task := makeTask(funcName, false, args)

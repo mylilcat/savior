@@ -21,7 +21,7 @@ func Register(service *Service) {
 		panic("[SAVIOR] service name repeated")
 	}
 	services[service.name] = service
-	saviorLog.Print("service register, name:", service.name)
+	saviorLog.Print("service register, name: %s", service.name)
 }
 
 func ServicesRun() {

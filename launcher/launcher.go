@@ -57,6 +57,12 @@ func EnableDebugLog() {
 	enableDebugLog = true
 }
 
+func DebugLogInit() {
+	if enableDebugLog {
+		log.NewSaviorLogger()
+	}
+}
+
 func SetWebSocketMessageType(t int) {
 	webSocketMessageType = t
 }

@@ -103,6 +103,7 @@ func executeTask(actor *actor, task *taskInfo) {
 			task.resultChan <- results
 		}
 	}
+	panic("[SAVIOR] actor function not found: " + task.functionName)
 	return
 }
 
@@ -114,12 +115,12 @@ type FunctionInfo struct {
 func (a *actor) RegisterFunction(name string, function any) {
 
 	if name == "" {
-		panic("[SAVIOR] Function name empty")
+		panic("[SAVIOR] function name empty")
 	}
 	funcValue := reflect.ValueOf(function)
 	funcType := reflect.TypeOf(function)
 	if funcValue.Kind() != reflect.Func {
-		panic("[SAVIOR] Error registering actor function: the item to be registered is not a function type.")
+		panic("[SAVIOR] error registering actor function: the item to be registered is not a function type.")
 	}
 	functionInfo := new(FunctionInfo)
 	functionInfo.funcValue = funcValue

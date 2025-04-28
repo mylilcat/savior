@@ -11,6 +11,7 @@ import (
 )
 
 func Start(services ...*service.Service) {
+	launcher.DebugLogInit()
 	for _, s := range services {
 		service.Register(s)
 	}
