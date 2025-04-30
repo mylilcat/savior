@@ -43,7 +43,7 @@ func (r *receiver) receiverRunning(c Connection, onRead func(conn Connection, da
 		buf := make([]byte, 4096)
 		n, err := c.Read(buf)
 		if err != nil {
-			saviorLog.Print("receive err:", err)
+			saviorLog.Print("receive err: %v", err)
 			break
 		}
 		if onRead != nil {

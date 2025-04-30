@@ -40,7 +40,7 @@ func (server *WSServer) Start() {
 	}
 	listener, err := net.Listen("tcp", "0.0.0.0:"+server.Port)
 	if err != nil {
-		saviorLog.Print("server start err:", err)
+		saviorLog.Print("server start err: %v", err)
 		return
 	}
 	server.listener = listener
@@ -57,7 +57,7 @@ func (server *WSServer) run() {
 	httpServer.MaxHeaderBytes = 1024
 	serveErr := httpServer.Serve(server.listener)
 	if serveErr != nil {
-		log.Println("savior server serve err:", serveErr)
+		saviorLog.Print("savior server serve err: %v", serveErr)
 		return
 	}
 }
@@ -69,7 +69,7 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	conn, err := h.upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("Savior upgrade err:", err)
+		saviorLog.Print("upgrade err: %v", err)
 		return
 	}
 

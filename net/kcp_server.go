@@ -26,7 +26,7 @@ func (server *KCPServer) Start() {
 	server.connCloseNotifyChan = make(chan *KCPConnection, 100)
 	listener, err := kcp.ListenWithOptions("0.0.0.0:"+server.Port, nil, 0, 0)
 	if err != nil {
-		saviorLog.Print("server start err:", err)
+		saviorLog.Print("server start err: %v", err)
 		return
 	}
 	server.listener = listener

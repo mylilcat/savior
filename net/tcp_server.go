@@ -24,7 +24,7 @@ func (server *TCPServer) Start() {
 	server.connCloseNotifyChan = make(chan *TCPConnection, 100)
 	listener, err := net.Listen("tcp", "0.0.0.0:"+server.Port)
 	if err != nil {
-		saviorLog.Print("server start err:", err)
+		saviorLog.Print("server start err: %v", err)
 		return
 	}
 	server.listener = listener
