@@ -3,7 +3,6 @@ package net
 import (
 	"github.com/gorilla/websocket"
 	saviorLog "github.com/mylilcat/savior/log"
-	"log"
 	"net"
 	"net/http"
 	"sync"
