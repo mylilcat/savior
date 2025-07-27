@@ -6,6 +6,7 @@ import (
 	"github.com/mylilcat/savior/util"
 	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -29,7 +30,7 @@ type Timer struct {
 	stopChan chan any
 	taskChan chan *task
 	slots    []*list.List
-	curSlot  int
+	curSlot  atomic.Int32
 	running  bool
 	lock     sync.Mutex
 }
@@ -61,7 +62,7 @@ func NewTimer(period int64, unit time.Duration, slotNum int) *Timer {
 		unit:     unit,
 		ticker:   time.NewTicker(time.Duration(period) * unit),
 		slots:    make([]*list.List, slotNum),
-		taskChan: make(chan *task),
+		taskChan: make(chan *task, 100),
 		stopChan: make(chan any),
 	}
 	for i := range t.slots {
@@ -81,7 +82,7 @@ func (t *Timer) AddTask(f func(), delayTime int64, typ ...any) {
 		delayTime = 1
 	}
 	round := int(delayTime / (int64(len(t.slots)) * t.period))
-	pos := int((int64(t.curSlot) + delayTime/t.period) % int64(len(t.slots)))
+	pos := int((int64(t.curSlot.Load()) + delayTime/t.period) % int64(len(t.slots)))
 	tsk := &task{
 		pos:   pos,
 		round: round,
@@ -142,8 +143,15 @@ func (t *Timer) Stop() {
 }
 
 func (t *Timer) tick() {
-	t.curSlot = (t.curSlot + 1) % len(t.slots)
-	list := t.slots[t.curSlot]
+	defer func() {
+		if r := recover(); r != nil {
+			buf := make([]byte, 1024)
+			n := runtime.Stack(buf, false)
+			saviorLog.Print("tick panic: %v\nStack:\n%s", r, buf[:n])
+		}
+	}()
+	t.curSlot.Store((t.curSlot.Load() + 1) % int32(len(t.slots)))
+	list := t.slots[t.curSlot.Load()]
 	for e := list.Front(); e != nil; {
 		tsk := e.Value.(*task)
 		if tsk.round > 0 {
@@ -156,7 +164,7 @@ func (t *Timer) tick() {
 				if r := recover(); r != nil {
 					buf := make([]byte, 1024)
 					n := runtime.Stack(buf, false)
-					saviorLog.Print("timer tick panicked: %v\nStack trace:\n%s", r, buf[:n])
+					saviorLog.Print("timer goroutine panicked: %v\nStack trace:\n%s", r, buf[:n])
 				}
 			}()
 			if tsk.typ == IntervalTask {

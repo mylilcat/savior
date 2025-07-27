@@ -100,7 +100,11 @@ func executeTask(actor *actor, task *taskInfo) {
 			for _, value := range resultValues {
 				results = append(results, value.Interface())
 			}
-			task.resultChan <- results
+			if len(results) > 0 {
+				task.resultChan <- results
+			} else {
+				close(task.resultChan)
+			}
 		}
 	} else {
 		panic("[SAVIOR] actor function not found: " + task.functionName)

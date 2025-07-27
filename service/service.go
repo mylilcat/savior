@@ -58,9 +58,7 @@ type taskInfo struct {
 	resultChan   chan []any
 }
 
-// Call call other service actor methods with no return value.
-// 调用其他服务actor方法，无返回值。
-func Call(serviceName string, funcName string, args ...any) {
+func AsyncCall(serviceName string, funcName string, args ...any) {
 	targetActor := getServiceActor(serviceName)
 	if targetActor == nil {
 		saviorLog.Print("service not exist: %s", serviceName)
@@ -70,11 +68,25 @@ func Call(serviceName string, funcName string, args ...any) {
 	targetActor.send(task)
 }
 
+// Call call other service actor methods with no return value.
+// 调用其他服务actor方法，无返回值。
+func Call(serviceName string, funcName string, args ...any) {
+	targetActor := getServiceActor(serviceName)
+	if targetActor == nil {
+		saviorLog.Print("service not exist: %s", serviceName)
+		return
+	}
+	task := makeTask(funcName, true, args)
+	targetActor.send(task)
+	<-task.resultChan
+}
+
 // Call1 call other service actor methods with 1 return value.
 // 调用其他服务actor方法，有一个返回值。
 func Call1[R any](serviceName string, funcName string, args ...any) (r R) {
 	targetActor := getServiceActor(serviceName)
 	if targetActor == nil {
+		saviorLog.Print("service not exist: %s", serviceName)
 		return
 	}
 	task := makeTask(funcName, true, args)
@@ -89,6 +101,7 @@ func Call1[R any](serviceName string, funcName string, args ...any) (r R) {
 func Call2[R1 any, R2 any](serviceName string, funcName string, args ...any) (r1 R1, r2 R2) {
 	targetActor := getServiceActor(serviceName)
 	if targetActor == nil {
+		saviorLog.Print("service not exist: %s", serviceName)
 		return
 	}
 	task := makeTask(funcName, true, args)
@@ -101,6 +114,7 @@ func Call2[R1 any, R2 any](serviceName string, funcName string, args ...any) (r1
 func Call3[R1 any, R2 any, R3 any](serviceName string, funcName string, args ...any) (r1 R1, r2 R2, r3 R3) {
 	targetActor := getServiceActor(serviceName)
 	if targetActor == nil {
+		saviorLog.Print("service not exist: %s", serviceName)
 		return
 	}
 	task := makeTask(funcName, true, args)
@@ -113,6 +127,7 @@ func Call3[R1 any, R2 any, R3 any](serviceName string, funcName string, args ...
 func Call4[R1 any, R2 any, R3 any, R4 any](serviceName string, funcName string, args ...any) (r1 R1, r2 R2, r3 R3, r4 R4) {
 	targetActor := getServiceActor(serviceName)
 	if targetActor == nil {
+		saviorLog.Print("service not exist: %s", serviceName)
 		return
 	}
 	task := makeTask(funcName, true, args)
@@ -125,6 +140,7 @@ func Call4[R1 any, R2 any, R3 any, R4 any](serviceName string, funcName string, 
 func Call5[R1 any, R2 any, R3 any, R4 any, R5 any](serviceName string, funcName string, args ...any) (r1 R1, r2 R2, r3 R3, r4 R4, r5 R5) {
 	targetActor := getServiceActor(serviceName)
 	if targetActor == nil {
+		saviorLog.Print("service not exist: %s", serviceName)
 		return
 	}
 	task := makeTask(funcName, true, args)
