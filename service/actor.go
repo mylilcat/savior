@@ -61,11 +61,11 @@ func (w *routineWorker) run(actor *actor) {
 		for {
 			select {
 			case task := <-w.taskChan:
-				executeTask(actor, task)
+				go executeTask(actor, task)
 			case <-w.stopChan:
 				if len(w.taskChan) > 0 {
 					for task := range w.taskChan {
-						executeTask(actor, task)
+						go executeTask(actor, task)
 					}
 				}
 				actor.wgWorker.Done()
