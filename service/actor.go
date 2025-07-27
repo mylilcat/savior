@@ -98,6 +98,11 @@ func executeTask(actor *actor, task *taskInfo) {
 		}
 		resultValues := functionInfo.funcValue.Call(argValues)
 		if task.resultChan != nil {
+			defer func() {
+				if r := recover(); r != nil {
+					saviorLog.Print("send to resultChan panic: %v", r)
+				}
+			}()
 			var results []any
 			for _, value := range resultValues {
 				results = append(results, value.Interface())
