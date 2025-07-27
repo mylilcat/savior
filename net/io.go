@@ -107,5 +107,9 @@ func (s *sender) senderRunning(c Connection) {
 }
 
 func (s *sender) send(data []byte) {
-	s.sendChan <- data
+	select {
+	case s.sendChan <- data:
+	default:
+		saviorLog.Print("send channel is full,sender:", s.conn.GetId(), "addr:", s.conn.GetRemoteAddr().String())
+	}
 }

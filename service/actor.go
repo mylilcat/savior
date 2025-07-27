@@ -61,15 +61,17 @@ func (w *routineWorker) run(actor *actor) {
 		for {
 			select {
 			case task := <-w.taskChan:
-				go executeTask(actor, task)
+				executeTask(actor, task)
 			case <-w.stopChan:
-				if len(w.taskChan) > 0 {
-					for task := range w.taskChan {
-						go executeTask(actor, task)
+				for {
+					select {
+					case task := <-w.taskChan:
+						executeTask(actor, task)
+					default:
+						actor.wgWorker.Done()
+						return
 					}
 				}
-				actor.wgWorker.Done()
-				return
 			}
 		}
 	}()
@@ -139,7 +141,11 @@ func (a *actor) send(task *taskInfo) {
 }
 
 func (w *routineWorker) submit(task *taskInfo) {
-	w.taskChan <- task
+	select {
+	case w.taskChan <- task:
+	default:
+		saviorLog.Print("taskChan full, task dropped,task function name: ", task.functionName)
+	}
 }
 
 func (p *routinePool) chooseWorker() *routineWorker {
