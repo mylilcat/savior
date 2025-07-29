@@ -108,7 +108,7 @@ func executeTask(actor *actor, task *taskInfo) {
 			for _, value := range resultValues {
 				results = append(results, value.Interface())
 			}
-			saviorLog.Print("actor task completed, task function: %v", task.functionName, " return values: %v", len(results))
+			saviorLog.Print("actor task completed, task function: %v | return values: %v", task.functionName, len(results))
 			if len(results) > 0 {
 				task.resultChan <- results
 			} else {
@@ -153,7 +153,7 @@ func (w *routineWorker) submit(task *taskInfo) {
 	select {
 	case w.taskChan <- task:
 	default:
-		saviorLog.Print("taskChan full, task dropped,task function name: ", task.functionName)
+		saviorLog.Print("taskChan full, task dropped,task function name: %v", task.functionName)
 	}
 }
 
@@ -166,7 +166,7 @@ func (p *routinePool) chooseWorker() *routineWorker {
 		}
 		if len(worker.taskChan) < len(w.taskChan) {
 			saviorLog.Print("actor current worker channel length: %v", w.taskChan)
-			saviorLog.Print("actor switch worker %v", i, " ,new worker channel length: %v", len(worker.taskChan))
+			saviorLog.Print("actor switch worker %v | new worker channel length: %v", i, len(worker.taskChan))
 			saviorLog.Print("actor choose worker: %v", i)
 			w = worker
 		}
