@@ -40,7 +40,7 @@ func (a *actor) poolStart() {
 
 func newWorkers() []*routineWorker {
 	var workers []*routineWorker
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 10; i++ {
 		w := new(routineWorker)
 		w.taskChan = make(chan *taskInfo, 100)
 		w.stopChan = make(chan any, 1)
@@ -85,6 +85,7 @@ func executeTask(actor *actor, task *taskInfo) {
 			saviorLog.Print("executeTask panicked: %v\nStack trace:\n%s", r, buf[:n], "function name:", task.functionName)
 		}
 	}()
+	saviorLog.Print("actor start the task, task function: %v", task.functionName)
 	if functionInfo, ok := actor.actorFunctions[task.functionName]; ok {
 		var argValues []reflect.Value
 		if functionInfo.funcType.NumIn() > 0 {
@@ -107,11 +108,14 @@ func executeTask(actor *actor, task *taskInfo) {
 			for _, value := range resultValues {
 				results = append(results, value.Interface())
 			}
+			saviorLog.Print("actor task completed, task function: %v", task.functionName, " return values: %v", len(results))
 			if len(results) > 0 {
 				task.resultChan <- results
 			} else {
 				close(task.resultChan)
 			}
+		} else {
+			saviorLog.Print("actor async task completed, task function: %v", task.functionName)
 		}
 	} else {
 		panic("[SAVIOR] actor function not found: " + task.functionName)
@@ -155,14 +159,19 @@ func (w *routineWorker) submit(task *taskInfo) {
 
 func (p *routinePool) chooseWorker() *routineWorker {
 	w := p.workers[0]
-	for _, worker := range p.workers {
+	for i, worker := range p.workers {
 		if len(worker.taskChan) == 0 {
+			saviorLog.Print("actor choose worker: %v", i)
 			return worker
 		}
 		if len(worker.taskChan) < len(w.taskChan) {
+			saviorLog.Print("actor current worker channel length: %v", w.taskChan)
+			saviorLog.Print("actor switch worker %v", i, " ,new worker channel length: %v", len(worker.taskChan))
+			saviorLog.Print("actor choose worker: %v", i)
 			w = worker
 		}
 	}
+
 	return w
 }
 
