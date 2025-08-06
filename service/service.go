@@ -33,13 +33,13 @@ func (s *Service) RegisterActorFunction(name string, function any) {
 // if this is a leaderboard service, you can load leaderboard data during the startup phase.
 // 设置服务初始化函数，比如这是一个排行榜服务，就可以在启动阶段加载排行榜数据。
 func (s *Service) SetInitFunc(fun func()) {
-	s.manager.serviceInitFunc = fun
+	s.manager.initializer.initFunc = fun
 }
 
 // SetDestroyFunc set a service shutdown handler; for example, save the in-memory leaderboard data after stopping the service.
 // 设置服务关闭后处理函数，比如停服后保存内存中的排行榜数据。
 func (s *Service) SetDestroyFunc(fun func()) {
-	s.manager.serviceDestroyFunc = fun
+	s.manager.finalizer.destroyFunc = fun
 }
 
 func makeTask(funcName string, needResult bool, args []any) *taskInfo {

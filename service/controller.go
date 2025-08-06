@@ -35,11 +35,9 @@ func ServicesRun() {
 		go service.manager.run()
 	}
 	for _, service := range services {
-		if service.manager.running {
-			continue
-		}
-		if service.manager.serviceInitFunc != nil {
-			service.manager.serviceInitFunc()
+		if service.manager.initializer.initFunc != nil && !service.manager.initializer.executed {
+			service.manager.initializer.initFunc()
+			service.manager.initializer.executed = true
 		}
 	}
 }
@@ -48,13 +46,11 @@ func ServicesStop() {
 	lock.Lock()
 	defer lock.Unlock()
 	for _, service := range services {
-		if !service.manager.running {
-			continue
-		}
 		service.manager.stop()
 		service.manager.wg.Wait()
-		if service.manager.serviceDestroyFunc != nil {
-			service.manager.serviceDestroyFunc()
+		if service.manager.finalizer.destroyFunc != nil && !service.manager.finalizer.executed {
+			service.manager.finalizer.destroyFunc()
+			service.manager.finalizer.executed = true
 		}
 	}
 }

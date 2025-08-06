@@ -7,8 +7,20 @@ type Manager struct {
 	wg                 sync.WaitGroup
 	serviceInitFunc    func()
 	serviceDestroyFunc func()
+	initializer        *initializer
+	finalizer          *finalizer
 	stopChan           chan any
 	running            bool
+}
+
+type initializer struct {
+	initFunc func()
+	executed bool
+}
+
+type finalizer struct {
+	destroyFunc func()
+	executed    bool
 }
 
 func NewManager() *Manager {
