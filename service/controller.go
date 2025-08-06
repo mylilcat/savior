@@ -46,8 +46,13 @@ func ServicesStop() {
 	lock.Lock()
 	defer lock.Unlock()
 	for _, service := range services {
+		if !service.manager.running {
+			continue
+		}
 		service.manager.stop()
 		service.manager.wg.Wait()
+	}
+	for _, service := range services {
 		if service.manager.finalizer.destroyFunc != nil && !service.manager.finalizer.executed {
 			service.manager.finalizer.destroyFunc()
 			service.manager.finalizer.executed = true
