@@ -3,14 +3,12 @@ package service
 import "sync"
 
 type Manager struct {
-	actor              *actor
-	wg                 sync.WaitGroup
-	serviceInitFunc    func()
-	serviceDestroyFunc func()
-	initializer        *initializer
-	finalizer          *finalizer
-	stopChan           chan any
-	running            bool
+	actor       *actor
+	wg          sync.WaitGroup
+	initializer *initializer
+	finalizer   *finalizer
+	stopChan    chan any
+	running     bool
 }
 
 type initializer struct {
@@ -27,6 +25,8 @@ func NewManager() *Manager {
 	manager := new(Manager)
 	manager.actor = NewActor()
 	manager.stopChan = make(chan any, 1)
+	manager.initializer = new(initializer)
+	manager.finalizer = new(finalizer)
 	manager.running = false
 	return manager
 }
