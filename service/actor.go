@@ -40,7 +40,7 @@ func (a *actor) poolStart() {
 
 func newWorkers() []*routineWorker {
 	var workers []*routineWorker
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 3; i++ {
 		w := new(routineWorker)
 		w.taskChan = make(chan *taskInfo, 100)
 		w.stopChan = make(chan any, 1)
