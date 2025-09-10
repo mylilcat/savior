@@ -167,7 +167,7 @@ func (t *Timer) tick() {
 					saviorLog.Print("timer goroutine panicked: %v\nStack trace:\n%s", r, buf[:n])
 				}
 			}()
-			if tsk.typ == IntervalTask {
+			if tsk.typ == IntervalTask && t.running {
 				defer t.AddTask(tsk.f, tsk.delayTime, tsk.typ)
 			}
 			tsk.f()
