@@ -16,23 +16,27 @@ const (
 )
 
 type task struct {
+	id        any
 	f         func()
 	round     int
 	pos       int
 	typ       int
 	delayTime int64
+	element   *list.Element
 }
 
 type Timer struct {
-	period   int64
-	unit     time.Duration
-	ticker   *time.Ticker
-	stopChan chan any
-	taskChan chan *task
-	slots    []*list.List
-	curSlot  atomic.Int32
-	running  bool
-	lock     sync.Mutex
+	period     int64
+	unit       time.Duration
+	ticker     *time.Ticker
+	stopChan   chan any
+	taskChan   chan *task
+	cancelChan chan any
+	slots      []*list.List
+	curSlot    atomic.Int32
+	running    bool
+	lock       sync.Mutex
+	idTasksMap map[any]map[*task]struct{}
 }
 
 // NewTimer Initialize a time wheel timer. 初始化时间轮定时器
@@ -58,12 +62,14 @@ func NewTimer(period int64, unit time.Duration, slotNum int) *Timer {
 		slotNum = 60
 	}
 	t := &Timer{
-		period:   period,
-		unit:     unit,
-		ticker:   time.NewTicker(time.Duration(period) * unit),
-		slots:    make([]*list.List, slotNum),
-		taskChan: make(chan *task, 100),
-		stopChan: make(chan any),
+		period:     period,
+		unit:       unit,
+		ticker:     time.NewTicker(time.Duration(period) * unit),
+		slots:      make([]*list.List, slotNum),
+		taskChan:   make(chan *task, 100),
+		cancelChan: make(chan any, 10),
+		stopChan:   make(chan any),
+		idTasksMap: make(map[any]map[*task]struct{}),
 	}
 	for i := range t.slots {
 		t.slots[i] = list.New()
@@ -78,27 +84,27 @@ func NewTimer(period int64, unit time.Duration, slotNum int) *Timer {
 // typ task type are divided into delay tasks (DelayTask) and interval tasks (IntervalTask). If no value is provided, the default is a delay task.
 // typ 任务类型分为两种，(DelayTask)延时任务，以及轮询任务(IntervalTask)，不传值默认为延时任务。
 func (t *Timer) AddTask(f func(), delayTime int64, typ ...any) {
-	if delayTime <= 0 {
-		delayTime = 1
-	}
-	round := int(delayTime / (int64(len(t.slots)) * t.period))
-	pos := int((int64(t.curSlot.Load()) + delayTime/t.period) % int64(len(t.slots)))
-	tsk := &task{
-		pos:   pos,
-		round: round,
-		f:     f,
-	}
+	t.addTask(nil, f, delayTime, typ...)
+}
 
-	if len(typ) == 0 || typ[0] == DelayTask {
-		tsk.typ = DelayTask
+func (t *Timer) AddTaskWithID(id any, f func(), delayTime int64, typ ...any) {
+	if id == nil {
+		saviorLog.Print("[SAVIOR] AddTaskWithID called with nil id, fallback to AddTask")
+		t.AddTask(f, delayTime, typ...)
+		return
 	}
+	t.addTask(id, f, delayTime, typ...)
+}
 
-	if len(typ) > 0 && typ[0] == IntervalTask {
-		tsk.typ = IntervalTask
-		tsk.delayTime = delayTime
+func (t *Timer) Cancel(id any) {
+	if id == nil {
+		return
 	}
-
-	t.taskChan <- tsk
+	select {
+	case t.cancelChan <- id:
+	default:
+		saviorLog.Print("[SAVIOR] Cancel channel full, cancel request dropped for id=%v", id)
+	}
 }
 
 func (t *Timer) Start() {
@@ -121,7 +127,9 @@ func (t *Timer) Start() {
 			case <-t.stopChan:
 				return
 			case tsk := <-t.taskChan:
-				t.slots[tsk.pos].PushBack(tsk)
+				t.handleAddTask(tsk)
+			case id := <-t.cancelChan:
+				t.handleCancel(id)
 			case <-t.ticker.C:
 				t.tick()
 			}
@@ -142,6 +150,57 @@ func (t *Timer) Stop() {
 	t.running = false
 }
 
+func (t *Timer) addTask(id any, f func(), delayTime int64, typ ...any) {
+	if delayTime <= 0 {
+		delayTime = 1
+	}
+	round := int(delayTime / (int64(len(t.slots)) * t.period))
+	pos := int((int64(t.curSlot.Load()) + delayTime/t.period) % int64(len(t.slots)))
+	tsk := &task{
+		id:        id,
+		pos:       pos,
+		round:     round,
+		f:         f,
+		typ:       DelayTask,
+		delayTime: delayTime,
+	}
+	if len(typ) > 0 && typ[0] == IntervalTask {
+		tsk.typ = IntervalTask
+	}
+	t.taskChan <- tsk
+}
+
+func (t *Timer) handleAddTask(tsk *task) {
+	e := t.slots[tsk.pos].PushBack(tsk)
+	tsk.element = e
+
+	if tsk.id != nil {
+		taskSet, ok := t.idTasksMap[tsk.id]
+		if !ok {
+			taskSet = make(map[*task]struct{})
+			t.idTasksMap[tsk.id] = taskSet
+		}
+		taskSet[tsk] = struct{}{}
+	}
+}
+
+func (t *Timer) handleCancel(id any) {
+	taskSet, ok := t.idTasksMap[id]
+	if !ok {
+		return
+	}
+	for tsk := range taskSet {
+		if tsk.element != nil {
+			if lst := t.slots[tsk.pos]; lst != nil {
+				lst.Remove(tsk.element)
+			}
+			tsk.element = nil
+		}
+		delete(taskSet, tsk)
+	}
+	delete(t.idTasksMap, id)
+}
+
 func (t *Timer) tick() {
 	defer func() {
 		if r := recover(); r != nil {
@@ -151,15 +210,30 @@ func (t *Timer) tick() {
 		}
 	}()
 	t.curSlot.Store((t.curSlot.Load() + 1) % int32(len(t.slots)))
-	list := t.slots[t.curSlot.Load()]
-	for e := list.Front(); e != nil; {
+	slotIdx := t.curSlot.Load()
+	lst := t.slots[slotIdx]
+	for e := lst.Front(); e != nil; {
 		tsk := e.Value.(*task)
 		if tsk.round > 0 {
 			tsk.round--
 			e = e.Next()
 			continue
 		}
-		go func() {
+
+		if tsk.id != nil {
+			if taskSet, ok := t.idTasksMap[tsk.id]; ok {
+				delete(taskSet, tsk)
+				if len(taskSet) == 0 {
+					delete(t.idTasksMap, tsk.id)
+				}
+			}
+		}
+
+		next := e.Next()
+		lst.Remove(e)
+		tsk.element = nil
+
+		go func(task *task) {
 			defer func() {
 				if r := recover(); r != nil {
 					buf := make([]byte, 1024)
@@ -167,13 +241,11 @@ func (t *Timer) tick() {
 					saviorLog.Print("timer goroutine panicked: %v\nStack trace:\n%s", r, buf[:n])
 				}
 			}()
-			if tsk.typ == IntervalTask && t.running {
-				defer t.AddTask(tsk.f, tsk.delayTime, tsk.typ)
+			if task.typ == IntervalTask && t.running {
+				defer t.addTask(task.id, task.f, task.delayTime, task.typ)
 			}
-			tsk.f()
-		}()
-		next := e.Next()
-		list.Remove(e)
+			task.f()
+		}(tsk)
 		e = next
 	}
 }
