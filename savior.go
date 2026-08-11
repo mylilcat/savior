@@ -35,7 +35,6 @@ func New() *Savior {
 }
 
 func (s *Savior) Start(services ...*service.Service) {
-	//launcher.DebugLogInit()
 	if enableDebugLog {
 		log.NewSaviorLogger()
 	}
@@ -43,12 +42,15 @@ func (s *Savior) Start(services ...*service.Service) {
 		service.Register(srv)
 	}
 	service.ServicesRun()
-	//launcher.ServerStart(s)
 	s.ServerStart()
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, os.Interrupt, os.Kill, syscall.SIGINT, syscall.SIGTERM)
 	<-sigChan
 	service.ServicesStop()
+}
+
+func EnableDebugLog() {
+	enableDebugLog = true
 }
 
 func (s *Savior) BindPort(port string) {
@@ -124,40 +126,4 @@ func (s *Savior) ServerStart() {
 		server.IdleMonitor = s.IdleMonitor
 		server.Start()
 	}
-}
-
-//func BindPort(port string) {
-//	launcher.SetPort(port)
-//}
-//
-//func SetProto(p string) {
-//	launcher.SetProto(p)
-//}
-//
-//func SetOnConnectHandler(f func(c net.Connection)) {
-//	net.OnConnect = f
-//}
-//
-//func SetOnDisconnectHandler(f func(c net.Connection)) {
-//	net.OnDisconnect = f
-//}
-//
-//func SetOnReadHandler(f func(c net.Connection, data []byte)) {
-//	net.OnRead = f
-//}
-//
-//func SetOnIdleHandler(f func(c net.Connection)) {
-//	net.OnIdle = f
-//}
-//
-//func SetIdleMonitor(readIdle int64, writeIdle int64, unit time.Duration) {
-//	launcher.SetIdleMonitor(readIdle, writeIdle, unit)
-//}
-//
-//func SetWebSocketMessageType(t int) {
-//	launcher.SetWebSocketMessageType(t)
-//}
-
-func EnableDebugLog() {
-	enableDebugLog = true
 }

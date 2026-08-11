@@ -36,14 +36,17 @@ func OnIdle(conn net.Connection) {
 }
 
 func main() {
-    savior.BindPort("8000") //设置服务端口
-    savior.SetProto("tcp") //设置协议 使用kcp协议填 "kcp"  websocket协议填 "ws"
-    savior.SetOnConnectHandler(OnConnect)
-    savior.SetOnDisconnectHandler(OnDisConnect)
-    savior.SetOnReadHandler(OnRead)
-    savior.SetOnIdleHandler(OnIdle)
-    savior.SetIdleMonitor(5, 5, time.Second) //设置空闲检测 
-    savior.Start() //启动
+	s := savior.New()
+    s.BindPort("8000") //设置服务端口
+    s.SetProto("tcp") //设置协议 使用kcp协议填 "kcp"  websocket协议填 "ws"
+    // 如果是websocket 需要设置消息类型 1 = websocket.TextMessage 2 = websocket.BinaryMessage 
+	//s.SetWebSocketMessageType(1)
+    s.SetOnConnectHandler(OnConnect)
+    s.SetOnDisconnectHandler(OnDisConnect)
+    s.SetOnReadHandler(OnRead)
+    s.SetOnIdleHandler(OnIdle)
+    s.SetIdleMonitor(5, 5, time.Second) //设置空闲检测 
+    s.Start() //启动
 }
 
 ```
