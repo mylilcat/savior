@@ -20,7 +20,7 @@ func newIOWorker(c Connection, connTyp string, handler *Handler) *worker {
 	ioWorker.sender = newSender(c, connTyp)
 	ioWorker.receiver = newReceiver()
 	go ioWorker.sender.senderRunning(c)
-	go ioWorker.receiver.receiverRunning(c, handler.onRead)
+	go ioWorker.receiver.receiverRunning(c, handler.OnRead)
 	return ioWorker
 }
 

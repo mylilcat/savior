@@ -46,7 +46,7 @@ func (server *WSServer) Start() {
 	go server.run()
 	go server.closedConnWatcher()
 	if server.IdleMonitor != nil {
-		server.IdleMonitor.idleMonitoring(&server.connections, server.Handler.onIdle)
+		server.IdleMonitor.idleMonitoring(&server.connections, server.Handler.OnIdle)
 	}
 }
 
@@ -75,8 +75,8 @@ func (h *wsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	wsConn := NewWSConnection(conn, h.s.connCloseNotifyChan, h.s.Handler, h.s.MessageType)
 	h.s.connections.Store(wsConn.conn.RemoteAddr(), wsConn)
 	h.s.wgConn.Add(1)
-	if h.s.Handler.onConnect != nil {
-		h.s.Handler.onConnect(wsConn)
+	if h.s.Handler.OnConnect != nil {
+		h.s.Handler.OnConnect(wsConn)
 	}
 }
 
@@ -85,8 +85,8 @@ func (server *WSServer) closedConnWatcher() {
 		wsConn := <-server.connCloseNotifyChan
 		if !wsConn.IsConnected() {
 			if _, loaded := server.connections.LoadAndDelete(wsConn.conn.RemoteAddr()); loaded {
-				if server.Handler.onDisconnect != nil {
-					server.Handler.onDisconnect(wsConn)
+				if server.Handler.OnDisconnect != nil {
+					server.Handler.OnDisconnect(wsConn)
 				}
 				server.wgConn.Done()
 			}

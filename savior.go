@@ -99,13 +99,13 @@ func (s *Savior) ServerStart() {
 		server.Port = s.Port
 		server.Handler = s.Handler
 		server.IdleMonitor = s.IdleMonitor
-		s.Start()
+		server.Start()
 	case KCP:
 		server := new(net.KCPServer)
 		server.Port = s.Port
 		server.Handler = s.Handler
 		server.IdleMonitor = s.IdleMonitor
-		s.Start()
+		server.Start()
 	case WS:
 		server := new(net.WSServer)
 		server.Port = s.Port
@@ -116,13 +116,13 @@ func (s *Savior) ServerStart() {
 		} else {
 			server.MessageType = websocket.TextMessage
 		}
-		s.Start()
+		server.Start()
 	default:
 		server := new(net.TCPServer)
 		server.Port = s.Port
 		server.Handler = s.Handler
 		server.IdleMonitor = s.IdleMonitor
-		s.Start()
+		server.Start()
 	}
 }
 

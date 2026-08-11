@@ -34,7 +34,7 @@ func (server *KCPServer) Start() {
 	go server.run()
 	go server.closedConnWatcher()
 	if server.IdleMonitor != nil {
-		server.IdleMonitor.idleMonitoring(&server.connections, server.Handler.onIdle)
+		server.IdleMonitor.idleMonitoring(&server.connections, server.Handler.OnIdle)
 	}
 }
 
@@ -63,8 +63,8 @@ func (server *KCPServer) run() {
 		kcpConn := NewKCPConnection(conn, server.connCloseNotifyChan, server.Handler)
 		server.connections.Store(kcpConn.conn.RemoteAddr(), kcpConn)
 		server.wgConn.Add(1)
-		if server.Handler.onConnect != nil {
-			server.Handler.onConnect(kcpConn)
+		if server.Handler.OnConnect != nil {
+			server.Handler.OnConnect(kcpConn)
 		}
 	}
 }
@@ -74,8 +74,8 @@ func (server *KCPServer) closedConnWatcher() {
 		kcpConn := <-server.connCloseNotifyChan
 		if !kcpConn.IsConnected() {
 			if _, loaded := server.connections.LoadAndDelete(kcpConn.conn.RemoteAddr()); loaded {
-				if server.Handler.onDisconnect != nil {
-					server.Handler.onDisconnect(kcpConn)
+				if server.Handler.OnDisconnect != nil {
+					server.Handler.OnDisconnect(kcpConn)
 				}
 				server.wgConn.Done()
 			}
