@@ -154,7 +154,8 @@ func (t *Timer) addTask(id any, f func(), delayTime int64, typ ...any) {
 	if delayTime <= 0 {
 		delayTime = 1
 	}
-	round := int(delayTime / (int64(len(t.slots)) * t.period))
+	//round := int(delayTime / (int64(len(t.slots)) * t.period))
+	round := int((delayTime - 1) / (int64(len(t.slots)) * t.period))
 	pos := int((int64(t.curSlot.Load()) + delayTime/t.period) % int64(len(t.slots)))
 	tsk := &task{
 		id:        id,
